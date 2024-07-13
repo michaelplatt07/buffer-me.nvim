@@ -83,7 +83,7 @@ function bufferme.go_to_buffer()
 	if idx == "q" then
 		return
 	else
-		state.open_buffer_at_idx(idx)
+		bufferme.open_buffer_at_idx(idx)
 	end
 end
 
