@@ -11,8 +11,9 @@ function bufferme.open_selected_buffer()
 end
 
 function bufferme.open_buffer_at_idx(idx)
+	local converted_idx = vim.fn.nr2char(idx)
 	vim.api.nvim_win_close(win_handle, true)
-	local selected_buf_handle = vim.fn.bufnr(state.bufList[idx])
+	local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 	if state.bufList[state.selectedBuffer] == "" then
 		return
 	end
