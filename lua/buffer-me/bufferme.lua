@@ -12,12 +12,16 @@ end
 
 function bufferme.open_buffer_at_idx(idx)
 	local converted_idx = vim.fn.nr2char(idx)
-	vim.api.nvim_win_close(win_handle, true)
-	local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
+
+	-- Check first if we even have a buffer to open
 	if state.bufList[state.selectedBuffer] == "" then
 		return
+	else
+		local win_handle = vim.api.nvim_get_current_win()
+		vim.api.nvim_win_close(win_handle, true)
+		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
+		vim.api.nvim_set_current_buf(selected_buf_handle)
 	end
-	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
 function bufferme.open_buffers_list()
