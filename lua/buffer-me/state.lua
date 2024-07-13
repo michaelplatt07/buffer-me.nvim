@@ -21,14 +21,23 @@ function state.append_to_buf_list(buf)
 	-- 0 and 9 for quick access
 	-- TODO(map) This needs to be smart and insert at the lowest value that is an empty string
 	for idx, val in ipairs(state.bufList) do
-		if val == "" then
-			state.bufList[idx] = vim.api.nvim_buf_get_name(buf)
+		local buf_name = vim.api.nvim_buf_get_name(buf)
+		if val == "" and state.check_for_dup_buf(buf_name) == false then
+			state.bufList[idx] = buf_name
 			break
-		else
-			print("Buffer list is full")
 		end
 	end
 	-- table.insert(state.bufList, vim.api.nvim_buf_get_name(buf))
+end
+
+function state.check_for_dup_buf(buf_name)
+	local is_dup = false
+	for _, val in ipairs(state.bufList) do
+		if val == buf_name then
+			is_dup = true
+		end
+	end
+	return is_dup
 end
 
 function state.add_buf_to_num(num, buf)
