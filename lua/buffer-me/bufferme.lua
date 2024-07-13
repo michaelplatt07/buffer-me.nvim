@@ -42,7 +42,7 @@ function bufferme.open_buffers_list()
 		end,
 	})
 
-	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, 2, false, lines)
+	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 	windower.create_floating_window()
 
 	-- Initialize key bindings
