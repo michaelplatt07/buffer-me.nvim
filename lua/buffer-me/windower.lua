@@ -15,6 +15,9 @@ function windower.create_floating_window()
 end
 
 function windower.close_window()
+	-- Clean up the state
+	state.bufNumToLineNumMap = {}
+
 	-- Reset modifiable flag so the buffer can be updated on the next search
 	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
 

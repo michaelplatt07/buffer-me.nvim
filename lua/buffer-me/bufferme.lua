@@ -11,13 +11,14 @@ function bufferme.open_selected_buffer()
 end
 
 function bufferme.open_buffer_at_idx(idx)
+	local converted_idx = tonumber(idx)
 	-- Check first if we even have a buffer to open
-	if state.bufList[idx] == "" then
+	if state.bufList[converted_idx] == "" then
 		return
 	else
 		local win_handle = vim.api.nvim_get_current_win()
 		vim.api.nvim_win_close(win_handle, true)
-		local selected_buf_handle = vim.fn.bufnr(state.bufNumToLineNumMap[idx])
+		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 		vim.api.nvim_set_current_buf(selected_buf_handle)
 	end
 end
