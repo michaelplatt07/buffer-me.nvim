@@ -50,6 +50,14 @@ function bufferme.add_buf_at_idx()
 	end
 end
 
+function bufferme.add_all_buffers()
+	for _, buf_handle in pairs(vim.api.nvim_list_bufs()) do
+		if vim.api.nvim_buf_get_option(buf_handle, "buflisted") then
+			state.append_to_buf_list(buf_handle)
+		end
+	end
+end
+
 function bufferme.remove_buf_at_idx()
 	print("Remove buffer at index:")
 	local idx = vim.fn.nr2char(vim.fn.getchar())
