@@ -17,7 +17,7 @@ function bufferme.open_buffer_at_idx(idx)
 	else
 		local win_handle = vim.api.nvim_get_current_win()
 		vim.api.nvim_win_close(win_handle, true)
-		local selected_buf_handle = vim.fn.bufnr(state.bufList[idx])
+		local selected_buf_handle = vim.fn.bufnr(state.bufNumToLineNumMap[idx])
 		vim.api.nvim_set_current_buf(selected_buf_handle)
 	end
 end
