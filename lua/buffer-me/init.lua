@@ -42,6 +42,7 @@ end
 
 function M.clear_list()
 	-- Clears all the buffers from the lists
+	bufferme.clear_buffer_list()
 end
 
 function M.toggle_last_buffer()
