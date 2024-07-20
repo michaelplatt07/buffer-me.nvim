@@ -91,4 +91,8 @@ function bufferme.go_to_buffer()
 	end
 end
 
+function bufferme.clear_buffer_list()
+	state.clear_state()
+end
+
 return bufferme

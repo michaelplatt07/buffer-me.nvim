@@ -59,4 +59,21 @@ function state.update_selected_row()
 	print("Updated row to: ", state.selectedBuffer)
 end
 
+function state.clear_state()
+	state.bufList = {
+		[1] = "",
+		[2] = "",
+		[3] = "",
+		[4] = "",
+		[5] = "",
+		[6] = "",
+		[7] = "",
+		[8] = "",
+		[9] = "",
+		[0] = "",
+	}
+	state.bufNumToLineNumMap = {}
+	state.selectedBuffer = nil
+end
+
 return state
