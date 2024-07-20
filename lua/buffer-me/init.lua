@@ -29,6 +29,7 @@ end
 
 function M.go_to_buffer()
 	-- Goes to given buffer number in the buffer set list
+	bufferme.go_to_buffer()
 end
 
 function M.next_buffer()

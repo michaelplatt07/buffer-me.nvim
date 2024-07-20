@@ -1,7 +1,6 @@
 local state = {
 	bufListBuf = vim.api.nvim_create_buf(false, true),
 	bufList = {
-		[0] = "",
 		[1] = "",
 		[2] = "",
 		[3] = "",
@@ -11,6 +10,7 @@ local state = {
 		[7] = "",
 		[8] = "",
 		[9] = "",
+		[0] = "",
 	},
 	bufNumToLineNumMap = {},
 	selectedBuffer = nil,

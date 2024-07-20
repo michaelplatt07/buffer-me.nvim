@@ -10,6 +10,19 @@ function bufferme.open_selected_buffer()
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
+function bufferme.open_buffer_at_idx(idx)
+	local converted_idx = tonumber(idx)
+	-- Check first if we even have a buffer to open
+	if state.bufList[converted_idx] == "" then
+		return
+	else
+		local win_handle = vim.api.nvim_get_current_win()
+		vim.api.nvim_win_close(win_handle, true)
+		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
+		vim.api.nvim_set_current_buf(selected_buf_handle)
+	end
+end
+
 function bufferme.open_buffers_list()
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
@@ -29,7 +42,7 @@ function bufferme.open_buffers_list()
 		end,
 	})
 
-	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, 2, false, lines)
+	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 	windower.create_floating_window()
 
 	-- Initialize key bindings
@@ -65,6 +78,16 @@ function bufferme.remove_buf_at_idx()
 		return
 	else
 		state.remove_buf_by_num(idx)
+	end
+end
+
+function bufferme.go_to_buffer()
+	print("Open buffer at index:")
+	local idx = vim.fn.nr2char(vim.fn.getchar())
+	if idx == "q" then
+		return
+	else
+		bufferme.open_buffer_at_idx(idx)
 	end
 end
 
