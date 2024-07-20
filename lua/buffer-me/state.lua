@@ -60,6 +60,7 @@ function state.go_next_buffer()
 	--TODO(map) Handle case of wrapping from beginning
 	-- Case where we don't have a currently selected buffer, start from beginning of all buffers and set that as the
 	-- current selected buffer
+	print("TODO(map) REMOVE ME : Current selected buffer: ", state.currSelectedBuffer)
 	if state.currSelectedBuffer == nil then
 		state.currSelectedBuffer = state.get_next_available_buffer(0)
 	end
@@ -73,6 +74,7 @@ function state.get_next_available_buffer(curr_buf_num)
 			break
 		end
 	end
+	print("TODO(map) REMOVE ME : next buffer number: ", next_buf_num)
 	return next_buf_num
 end
 
