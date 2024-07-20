@@ -34,6 +34,7 @@ end
 
 function M.next_buffer()
 	-- Goes to next buffer in the buffer set list
+	bufferme.go_next_buffer()
 end
 
 function M.prev_buffer()

@@ -6,7 +6,14 @@ local bufferme = {}
 function bufferme.open_selected_buffer()
 	local win_handle = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_close(win_handle, true)
-	local selected_buf_handle = vim.fn.bufnr(state.bufList[state.selectedBuffer])
+	local selected_buf_handle = nil
+	if state.selectedRow then
+		selected_buf_handle = vim.fn.bufnr(state.bufList[state.selectedRow])
+	elseif state.currSelectedBuffer then
+		selected_buf_handle = vim.fn.bufnr(state.bufList[state.currSelectedBuffer])
+	else
+		error("There was problem opening a buffer")
+	end
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
@@ -93,6 +100,11 @@ end
 
 function bufferme.clear_buffer_list()
 	state.clear_state()
+end
+
+function bufferme.go_next_buffer()
+	state.go_next_buffer()
+	bufferme.open_selected_buffer()
 end
 
 return bufferme
