@@ -8,13 +8,13 @@ function M.open()
 end
 
 function M.add()
-	-- Add teh current buffer to the end of the buffer management list
+	-- Add the current buffer to the end of the buffer management list
 	bufferme.add_buf()
 end
 
 function M.add_all()
 	-- Adds all current buffers open to the list
-	-- TODO(map) This shoud only add up to the first 10 buffers
+	bufferme.add_all_buffers()
 end
 
 function M.set_buffer_number()
