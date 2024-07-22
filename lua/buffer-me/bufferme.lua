@@ -4,10 +4,10 @@ local keybindings = require("buffer-me.keybindings")
 local bufferme = {}
 
 function bufferme.open_selected_buffer()
-	local win_handle = vim.api.nvim_get_current_win()
-	vim.api.nvim_win_close(win_handle, true)
 	local selected_buf_handle = nil
 	if state.selectedRow then
+		local win_handle = vim.api.nvim_get_current_win()
+		vim.api.nvim_win_close(win_handle, true)
 		selected_buf_handle = vim.fn.bufnr(state.bufList[state.selectedRow])
 	elseif state.currSelectedBuffer then
 		selected_buf_handle = vim.fn.bufnr(state.bufList[state.currSelectedBuffer])
@@ -15,6 +15,7 @@ function bufferme.open_selected_buffer()
 		error("There was problem opening a buffer")
 	end
 	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_row()
 end
 
 function bufferme.open_buffer_at_idx(idx)
@@ -28,6 +29,7 @@ function bufferme.open_buffer_at_idx(idx)
 		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 		vim.api.nvim_set_current_buf(selected_buf_handle)
 	end
+	state.clear_selected_row()
 end
 
 function bufferme.open_buffers_list()
@@ -35,7 +37,12 @@ function bufferme.open_buffers_list()
 	for idx, value in pairs(state.bufList) do
 		if value ~= "" then
 			table.insert(state.bufNumToLineNumMap, idx)
-			table.insert(lines, string.format("%s: %s", idx, value))
+			-- Conditionally add an asterisk to show the current buffer in the buffer list
+			if idx == state.currSelectedBuffer then
+				table.insert(lines, string.format("*%s: %s", idx, value))
+			else
+				table.insert(lines, string.format("%s: %s", idx, value))
+			end
 		end
 	end
 
@@ -96,15 +103,23 @@ function bufferme.go_to_buffer()
 	else
 		bufferme.open_buffer_at_idx(idx)
 	end
-end
-
-function bufferme.clear_buffer_list()
-	state.clear_state()
+	state.clear_selected_row()
 end
 
 function bufferme.go_next_buffer()
 	state.go_next_buffer()
 	bufferme.open_selected_buffer()
+	state.clear_selected_row()
+end
+
+function bufferme.go_prev_buffer()
+	state.go_prev_buffer()
+	bufferme.open_selected_buffer()
+	state.clear_selected_row()
+end
+
+function bufferme.clear_buffer_list()
+	state.clear_state()
 end
 
 return bufferme

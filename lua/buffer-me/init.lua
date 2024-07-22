@@ -39,6 +39,7 @@ end
 
 function M.prev_buffer()
 	-- Goes to previous buffer in the buffer set list
+	bufferme.go_prev_buffer()
 end
 
 function M.clear_list()
