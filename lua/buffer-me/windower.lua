@@ -17,6 +17,7 @@ end
 function windower.close_window()
 	-- Clean up the state
 	state.bufNumToLineNumMap = {}
+	state.clear_selected_row()
 
 	-- Reset modifiable flag so the buffer can be updated on the next search
 	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
