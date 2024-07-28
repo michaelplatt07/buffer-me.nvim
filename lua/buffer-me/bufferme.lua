@@ -134,7 +134,7 @@ function bufferme.set_first_hotswap()
 	if idx == "q" then
 		return
 	else
-		state.set_first_hotswap(idx)
+		state.set_first_hotswap(tonumber(idx))
 	end
 end
 
@@ -144,7 +144,7 @@ function bufferme.set_second_hotswap()
 	if idx == "q" then
 		return
 	else
-		state.set_second_hotswap(idx)
+		state.set_second_hotswap(tonumber(idx))
 	end
 end
 
