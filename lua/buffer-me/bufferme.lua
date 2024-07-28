@@ -56,6 +56,7 @@ function bufferme.open_buffers_list()
 		end,
 	})
 
+	-- TODO(map) Do we want to display the hotswap buffers on the screen? And should we include most recent buffer?
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 	windower.create_floating_window()
 
