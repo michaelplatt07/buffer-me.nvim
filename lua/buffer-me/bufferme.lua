@@ -133,6 +133,9 @@ function bufferme.set_first_hotswap()
 	local idx = vim.fn.nr2char(vim.fn.getchar())
 	if idx == "q" then
 		return
+	elseif idx == nil then
+		local bufnr = vim.api.nvim_win_get_buf(0)
+		state.set_second_hotswap(bufnr)
 	else
 		state.set_first_hotswap(tonumber(idx))
 	end
@@ -143,6 +146,9 @@ function bufferme.set_second_hotswap()
 	local idx = vim.fn.nr2char(vim.fn.getchar())
 	if idx == "q" then
 		return
+	elseif idx == nil then
+		local bufnr = vim.api.nvim_win_get_buf(0)
+		state.set_second_hotswap(bufnr)
 	else
 		state.set_second_hotswap(tonumber(idx))
 	end
