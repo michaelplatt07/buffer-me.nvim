@@ -59,6 +59,11 @@ function bufferme.open_buffers_list()
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 	windower.create_floating_window()
 
+	-- Handle an empty selected row for the first time
+	if state.selectedRow == nil then
+		state.update_selected_row()
+	end
+
 	-- Initialize key bindings
 	keybindings.map_keys(state.bufListBuf)
 end
