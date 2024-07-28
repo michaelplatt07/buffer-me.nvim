@@ -127,4 +127,43 @@ function bufferme.clear_buffer_list()
 	state.clear_state()
 end
 
+function bufferme.set_first_hotswap()
+	print("Input buffer number for first hotswap:")
+	local idx = vim.fn.nr2char(vim.fn.getchar())
+	if idx == "q" then
+		return
+	else
+		state.set_first_hotswap(idx)
+	end
+end
+
+function bufferme.set_second_hotswap()
+	print("Input buffer number for second hotswap:")
+	local idx = vim.fn.nr2char(vim.fn.getchar())
+	if idx == "q" then
+		return
+	else
+		state.set_second_hotswap(idx)
+	end
+end
+
+function bufferme.toggle_hotswap_buffers()
+	-- TODO(map) Might need to include a check here to make sure the window is visible??
+	-- Get the current windows buffer and name
+	local bufnr = vim.api.nvim_win_get_buf(0)
+	if state.firstBufHotswap ~= bufnr then
+		-- Not on the current first buf hotswap
+		vim.api.nvim_set_current_buf(state.firstBufHotswap)
+	elseif state.firstBufHotswap == bufnr then
+		-- On the first buf hotswap so go to the second
+		vim.api.nvim_set_current_buf(state.secondBufHotswap)
+	elseif state.secondBufHotswap == bufnr then
+		-- On the second so go to the first
+		vim.api.nvim_set_current_buf(state.firstBufHotswap)
+	else
+		-- Generic error case
+		print("Error in toggleing hotswap buffers")
+	end
+end
+
 return bufferme
