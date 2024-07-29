@@ -140,7 +140,7 @@ function state.set_first_hotswap(bufnr)
 end
 
 function state.set_first_hotswap_from_window()
-	state.firstBufHotswap = state.bufNumToLineNumMap[state.selectedRow]
+	state.firstBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
 end
 
 function state.set_second_hotswap(bufnr)
@@ -148,7 +148,7 @@ function state.set_second_hotswap(bufnr)
 end
 
 function state.set_second_hotswap_from_window()
-	state.secondBufHotswap = state.bufNumToLineNumMap[state.selectedRow]
+	state.secondBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
 end
 
 function state.update_selected_row()
