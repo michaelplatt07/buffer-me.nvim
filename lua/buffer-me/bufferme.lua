@@ -167,10 +167,10 @@ function bufferme.toggle_hotswap_buffers()
 	if state.firstBufHotswap ~= bufnr then
 		-- Not on the current first buf hotswap
 		vim.api.nvim_set_current_buf(state.firstBufHotswap)
-	elseif state.firstBufHotswap == bufnr then
+	elseif state.firstBufHotswap == bufnr and state.secondBufHotswap ~= nil then
 		-- On the first buf hotswap so go to the second
 		vim.api.nvim_set_current_buf(state.secondBufHotswap)
-	elseif state.secondBufHotswap == bufnr then
+	elseif state.secondBufHotswap == bufnr and state.firstBufHotswap ~= nil then
 		-- On the second so go to the first
 		vim.api.nvim_set_current_buf(state.firstBufHotswap)
 	else

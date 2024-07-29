@@ -138,8 +138,16 @@ function state.set_first_hotswap(bufnr)
 	state.firstBufHotswap = bufnr
 end
 
+function state.set_first_hotswap_from_window()
+	state.firstBufHotswap = state.bufNumToLineNumMap[state.selectedRow]
+end
+
 function state.set_second_hotswap(bufnr)
 	state.secondBufHotswap = bufnr
+end
+
+function state.set_second_hotswap_from_window()
+	state.secondBufHotswap = state.bufNumToLineNumMap[state.selectedRow]
 end
 
 function state.update_selected_row()
