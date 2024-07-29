@@ -1,6 +1,7 @@
 local state = {
 	bufListBuf = vim.api.nvim_create_buf(false, true),
 	hotswapBuf = vim.api.nvim_create_buf(false, true),
+	hotswapWindowHandle = nil,
 	bufList = {
 		[1] = "",
 		[2] = "",
