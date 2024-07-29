@@ -29,6 +29,7 @@ function state.append_to_buf_list(buf)
 		local buf_name = vim.api.nvim_buf_get_name(buf)
 		if val == "" and state.check_for_dup_buf(buf_name) == false then
 			state.bufList[idx] = buf_name
+			state.bufNumToLineNumMap[idx] = buf
 			break
 		end
 	end
@@ -52,6 +53,7 @@ function state.add_buf_to_num(num, buf)
 	else
 		table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
 	end
+	state.bufNumToLineNumMap[num] = buf
 end
 
 function state.remove_buf_by_num(num)

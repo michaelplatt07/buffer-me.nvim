@@ -39,7 +39,7 @@ function bufferme.open_buffers_list()
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
 		if value ~= "" then
-			table.insert(state.bufNumToLineNumMap, idx)
+			-- table.insert(state.bufNumToLineNumMap, idx)
 			-- Conditionally add an asterisk to show the current buffer in the buffer list
 			if idx == state.currSelectedBuffer then
 				table.insert(lines, string.format("*%s: %s", idx, value))
