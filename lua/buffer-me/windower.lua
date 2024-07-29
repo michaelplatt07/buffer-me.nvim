@@ -4,7 +4,7 @@ local windower = {}
 function windower.create_buf_list_window()
 	return vim.api.nvim_open_win(state.bufListBuf, true, {
 		relative = "editor",
-		row = 2,
+		row = 3,
 		col = 0,
 		width = 100,
 		height = 20,
