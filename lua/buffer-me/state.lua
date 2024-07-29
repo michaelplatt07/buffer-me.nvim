@@ -15,6 +15,8 @@ local state = {
 	bufNumToLineNumMap = {},
 	selectedRow = nil,
 	currSelectedBuffer = nil,
+	firstBufHotswap = nil,
+	secondBufHotswap = nil,
 }
 
 function state.append_to_buf_list(buf)
@@ -131,9 +133,16 @@ function state.get_first_available_buffer_rev()
 	return next_buf_num
 end
 
+function state.set_first_hotswap(bufnr)
+	state.firstBufHotswap = bufnr
+end
+
+function state.set_second_hotswap(bufnr)
+	state.secondBufHotswap = bufnr
+end
+
 function state.update_selected_row()
 	state.selectedRow = state.bufNumToLineNumMap[vim.api.nvim_win_get_cursor(0)[1]]
-	print("Updated row to: ", state.selectedRow)
 end
 
 function state.clear_selected_row()

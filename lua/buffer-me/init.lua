@@ -47,8 +47,20 @@ function M.clear_list()
 	bufferme.clear_buffer_list()
 end
 
+function M.set_first_hotswap()
+	bufferme.set_first_hotswap()
+end
+
+function M.set_second_hotswap()
+	bufferme.set_second_hotswap()
+end
+
+function M.toggle_hotswap()
+	bufferme.toggle_hotswap_buffers()
+end
+
 function M.toggle_last_buffer()
-	-- Toggles between the two most recent opened buffers
+	-- Toggles to the most previously viewed buffer
 end
 
 function M.setup(config)
