@@ -58,8 +58,8 @@ function bufferme.open_buffers_list()
 
 	-- Set the lines for the hotswap buffer
 	local hotswap_lines = {}
-	table.insert(lines, string.format("*%s: %s", 1, state.firstBufHotswap))
-	table.insert(lines, string.format("*%s: %s", 2, state.secondBufHotswap))
+	table.insert(hotswap_lines, string.format("*%s: %s", 1, state.firstBufHotswap))
+	table.insert(hotswap_lines, string.format("*%s: %s", 2, state.secondBufHotswap))
 	vim.api.nvim_buf_set_lines(state.hotswapBuf, 0, 2, false, hotswap_lines)
 	windower.create_hot_swap_window()
 
