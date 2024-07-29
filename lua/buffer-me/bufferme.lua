@@ -6,6 +6,7 @@ local bufferme = {}
 function bufferme.open_selected_buffer()
 	local selected_buf_handle = nil
 	if state.selectedRow then
+		-- TODO(map) Swap out tracking the buffer list window for the same way the hotswap is being handled in state
 		local win_handle = vim.api.nvim_get_current_win()
 		vim.api.nvim_win_close(win_handle, true)
 		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
@@ -27,6 +28,7 @@ function bufferme.open_buffer_at_idx(idx)
 	else
 		local win_handle = vim.api.nvim_get_current_win()
 		vim.api.nvim_win_close(win_handle, true)
+		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
 		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 		vim.api.nvim_set_current_buf(selected_buf_handle)
 	end
@@ -59,8 +61,8 @@ function bufferme.open_buffers_list()
 
 	-- Set the lines for the hotswap buffer
 	local hotswap_lines = {}
-	table.insert(hotswap_lines, string.format("%s: %s", 1, state.firstBufHotswap))
-	table.insert(hotswap_lines, string.format("%s: %s", 2, state.secondBufHotswap))
+	table.insert(hotswap_lines, string.format("%s: %s", 1, vim.api.nvim_buf_get_name(state.firstBufHotswap)))
+	table.insert(hotswap_lines, string.format("%s: %s", 2, vim.api.nvim_buf_get_name(state.secondBufHotswap)))
 	vim.api.nvim_buf_set_lines(state.hotswapBuf, 0, 2, false, hotswap_lines)
 	state.hotswapWindowHandle = windower.create_hot_swap_window()
 
