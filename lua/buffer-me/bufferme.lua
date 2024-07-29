@@ -56,9 +56,15 @@ function bufferme.open_buffers_list()
 		end,
 	})
 
-	-- TODO(map) Do we want to display the hotswap buffers on the screen? And should we include most recent buffer?
+	-- Set the lines for the hotswap buffer
+	local hotswap_lines = {}
+	table.insert(lines, string.format("*%s: %s", 1, state.firstBufHotswap))
+	table.insert(lines, string.format("*%s: %s", 2, state.secondBufHotswap))
+	vim.api.nvim_buf_set_lines(state.hotswapBuf, 0, 2, false, hotswap_lines)
+
+	-- Set the lines for the buffer list
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
-	windower.create_floating_window()
+	windower.create_buf_list_window()
 
 	-- Handle an empty selected row for the first time
 	if state.selectedRow == nil then

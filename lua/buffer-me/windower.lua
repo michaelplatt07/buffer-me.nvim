@@ -1,11 +1,11 @@
 local state = require("buffer-me.state")
 local windower = {}
 
-function windower.create_floating_window()
+function windower.create_buf_list_window()
 	return vim.api.nvim_open_win(state.bufListBuf, true, {
 		relative = "editor",
 		row = 0,
-		col = 0,
+		col = 2,
 		width = 100,
 		height = 20,
 		border = "double",
@@ -14,7 +14,20 @@ function windower.create_floating_window()
 	})
 end
 
-function windower.close_window()
+function windower.create_hot_swap_window()
+	return vim.api.nvim_open_win(state.hotswapBuf, true, {
+		relative = "editor",
+		row = 0,
+		col = 0,
+		width = 100,
+		height = 2,
+		border = "double",
+		style = "minimal",
+		title = "Hotswap",
+	})
+end
+
+function windower.close_buffer_me()
 	-- Clean up the state
 	state.bufNumToLineNumMap = {}
 	state.clear_selected_row()
