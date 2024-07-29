@@ -4,8 +4,8 @@ local windower = {}
 function windower.create_buf_list_window()
 	return vim.api.nvim_open_win(state.bufListBuf, true, {
 		relative = "editor",
-		row = 0,
-		col = 2,
+		row = 2,
+		col = 0,
 		width = 100,
 		height = 20,
 		border = "double",
@@ -38,6 +38,8 @@ function windower.close_buffer_me()
 	-- Close the buffers and recreate them
 	vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
 	state.bufListBuf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
+	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
 end
 
 return windower
