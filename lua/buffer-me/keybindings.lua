@@ -11,14 +11,14 @@ function keybindings.map_keys(buf)
 		buf,
 		"n",
 		"f",
-		':lua require("buffer-me.state").set_first_hotswap_from_window()<CR>',
+		':lua require("buffer-me.bufferme").set_first_hotswap_from_window()<CR>',
 		{}
 	)
 	vim.api.nvim_buf_set_keymap(
 		buf,
 		"n",
 		"s",
-		':lua require("buffer-me.state").set_second_hotswap_from_window()<CR>',
+		':lua require("buffer-me.bufferme").set_second_hotswap_from_window()<CR>',
 		{}
 	)
 	vim.api.nvim_buf_set_keymap(buf, "n", "g", ':lua require("buffer-me.bufferme").go_to_buffer()<CR>', {})

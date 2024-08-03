@@ -136,6 +136,10 @@ function bufferme.set_first_hotswap()
 	end
 end
 
+function bufferme.set_first_hotswap_from_window()
+	state.set_first_hotswap_from_window()
+end
+
 function bufferme.set_second_hotswap()
 	print("Input buffer number for second hotswap:")
 	local idx = vim.fn.nr2char(vim.fn.getchar())
@@ -148,6 +152,10 @@ function bufferme.set_second_hotswap()
 		state.secondBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
 		windower.render_hotswap_lines()
 	end
+end
+
+function bufferme.set_second_hotswap_from_window()
+	state.set_second_hotswap_from_window()
 end
 
 function bufferme.toggle_hotswap_buffers()
