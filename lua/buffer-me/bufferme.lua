@@ -138,6 +138,7 @@ end
 
 function bufferme.set_first_hotswap_from_window()
 	state.set_first_hotswap_from_window()
+	windower.render_hotswap_lines()
 end
 
 function bufferme.set_second_hotswap()
@@ -156,6 +157,7 @@ end
 
 function bufferme.set_second_hotswap_from_window()
 	state.set_second_hotswap_from_window()
+	windower.render_hotswap_lines()
 end
 
 function bufferme.toggle_hotswap_buffers()
