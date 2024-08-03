@@ -1,4 +1,3 @@
-local windower = require("buffer-me.windower")
 local state = {
 	bufListBuf = vim.api.nvim_create_buf(false, true),
 	hotswapBuf = vim.api.nvim_create_buf(false, true),
@@ -138,7 +137,6 @@ end
 
 function state.set_first_hotswap(bufnr)
 	state.firstBufHotswap = bufnr
-	windower.render_hotswap_lines()
 end
 
 function state.set_first_hotswap_from_window()
@@ -147,7 +145,6 @@ end
 
 function state.set_second_hotswap(bufnr)
 	state.secondBufHotswap = bufnr
-	windower.render_hotswap_lines()
 end
 
 function state.set_second_hotswap_from_window()

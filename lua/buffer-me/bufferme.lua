@@ -130,8 +130,10 @@ function bufferme.set_first_hotswap()
 	elseif idx == "\r" then
 		local bufnr = vim.api.nvim_win_get_buf(0)
 		state.set_first_hotswap(bufnr)
+		windower.render_hotswap_lines()
 	else
 		state.set_first_hotswap(tonumber(idx))
+		windower.render_hotswap_lines()
 	end
 end
 
@@ -143,8 +145,10 @@ function bufferme.set_second_hotswap()
 	elseif idx == "\r" then
 		local bufnr = vim.api.nvim_win_get_buf(0)
 		state.set_second_hotswap(bufnr)
+		windower.render_hotswap_lines()
 	else
 		state.set_second_hotswap(tonumber(idx))
+		windower.render_hotswap_lines()
 	end
 end
 
