@@ -36,19 +36,6 @@ function bufferme.open_buffer_at_idx(idx)
 end
 
 function bufferme.open_buffers_list()
-	local lines = {}
-	for idx, value in pairs(state.bufList) do
-		if value ~= "" then
-			table.insert(state.bufNumToLineNumMap, idx)
-			-- Conditionally add an asterisk to show the current buffer in the buffer list
-			if idx == state.currSelectedBuffer then
-				table.insert(lines, string.format("*%s: %s", idx, value))
-			else
-				table.insert(lines, string.format("%s: %s", idx, value))
-			end
-		end
-	end
-
 	-- Callback for when the cursor moves around in the buffer
 	vim.api.nvim_create_autocmd({ "CursorMoved" }, {
 		buffer = state.bufListBuf,
@@ -60,23 +47,12 @@ function bufferme.open_buffers_list()
 	})
 
 	-- Set the lines for the hotswap buffer
-	local hotswap_lines = {}
-	local firstHotswapName = nil
-	if state.firstBufHotswap ~= nil then
-		firstHotswapName = vim.api.nvim_buf_get_name(state.firstBufHotswap)
-	end
-	local secondHotswapName = nil
-	if state.secondBufHotswap ~= nil then
-		secondHotswapName = vim.api.nvim_buf_get_name(state.secondBufHotswap)
-	end
-	table.insert(hotswap_lines, string.format("%s: %s", 1, firstHotswapName))
-	table.insert(hotswap_lines, string.format("%s: %s", 2, secondHotswapName))
-	vim.api.nvim_buf_set_lines(state.hotswapBuf, 0, 2, false, hotswap_lines)
 	state.hotswapWindowHandle = windower.create_hot_swap_window()
+	state.render_hotswap_lines()
 
 	-- Set the lines for the buffer list
-	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 	windower.create_buf_list_window()
+	windower.render_buf_list_lines()
 
 	-- Handle an empty selected row for the first time
 	if state.selectedRow == nil then
