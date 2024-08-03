@@ -128,11 +128,10 @@ function bufferme.set_first_hotswap()
 	if idx == "q" then
 		return
 	elseif idx == "\r" then
-		local bufnr = vim.api.nvim_win_get_buf(0)
-		state.set_first_hotswap(bufnr)
+		state.firstBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
 		windower.render_hotswap_lines()
 	else
-		state.set_first_hotswap(tonumber(idx))
+		state.firstBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
 		windower.render_hotswap_lines()
 	end
 end
