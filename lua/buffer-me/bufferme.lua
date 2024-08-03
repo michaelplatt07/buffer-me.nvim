@@ -48,7 +48,7 @@ function bufferme.open_buffers_list()
 
 	-- Set the lines for the hotswap buffer
 	state.hotswapWindowHandle = windower.create_hot_swap_window()
-	state.render_hotswap_lines()
+	windower.render_hotswap_lines()
 
 	-- Set the lines for the buffer list
 	windower.create_buf_list_window()
