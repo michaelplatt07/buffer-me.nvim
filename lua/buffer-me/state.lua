@@ -1,5 +1,7 @@
 local state = {
 	bufListBuf = vim.api.nvim_create_buf(false, true),
+	hotswapBuf = vim.api.nvim_create_buf(false, true),
+	hotswapWindowHandle = nil,
 	bufList = {
 		[1] = "",
 		[2] = "",
@@ -137,8 +139,16 @@ function state.set_first_hotswap(bufnr)
 	state.firstBufHotswap = bufnr
 end
 
+function state.set_first_hotswap_from_window()
+	state.firstBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
+end
+
 function state.set_second_hotswap(bufnr)
 	state.secondBufHotswap = bufnr
+end
+
+function state.set_second_hotswap_from_window()
+	state.secondBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
 end
 
 function state.update_selected_row()
