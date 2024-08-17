@@ -32,7 +32,7 @@ function windower.render_buf_list_lines()
 end
 
 function windower.create_hot_swap_window()
-	return vim.api.nvim_open_win(state.hotswapBuf, true, {
+	return vim.api.nvim_open_win(state.hotswapBuf, false, {
 		relative = "editor",
 		row = 0,
 		col = 0,
