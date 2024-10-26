@@ -1,6 +1,7 @@
 local bufferme = require("buffer-me.bufferme")
 local keybindings = require("buffer-me.keybindings")
 local state = require("buffer-me.state")
+local management = require("buffer-me.managment")
 local M = {}
 
 function M.open()
@@ -75,6 +76,9 @@ function M.setup(config)
 			state.autoManage = config.auto_manage
 		end
 	end
+
+	-- Create the bindings on the buffer events
+	management.create_bindings()
 end
 
 return M
