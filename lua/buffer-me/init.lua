@@ -1,5 +1,6 @@
 local bufferme = require("buffer-me.bufferme")
 local keybindings = require("buffer-me.keybindings")
+local state = require("buffer-me.state")
 local M = {}
 
 function M.open()
@@ -69,6 +70,9 @@ function M.setup(config)
 			for func, custombind in pairs(config.keys) do
 				keybindings.update_key_binding(func, custombind)
 			end
+		end
+		if config.auto_manage ~= nil then
+			state.autoManage = config.auto_manage
 		end
 	end
 end

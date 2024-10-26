@@ -1,4 +1,5 @@
 local state = {
+	autoManage = false,
 	bufListBuf = vim.api.nvim_create_buf(false, true),
 	hotswapBuf = vim.api.nvim_create_buf(false, true),
 	hotswapWindowHandle = nil,
