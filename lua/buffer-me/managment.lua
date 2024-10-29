@@ -18,7 +18,7 @@ function management.create_bindings()
 		pattern = "*",
 		callback = function()
 			if state.autoManage then
-                local bufnr = vim.api.nvim_get_current_buffer()
+				local bufnr = vim.api.nvim_get_current_buf()
 				state.append_to_buf_list(bufnr)
 			end
 		end,
