@@ -1,4 +1,5 @@
 local state = require("buffer-me.state")
+local bufferme = require("buffer-me.bufferme")
 local management = {}
 
 function management.create_bindings()
@@ -17,7 +18,7 @@ function management.create_bindings()
 		pattern = "*",
 		callback = function()
 			if state.autoManage then
-				print("Opened an existing file!")
+				bufferme.add_buff()
 			end
 		end,
 	})
