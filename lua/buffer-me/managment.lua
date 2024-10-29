@@ -14,7 +14,7 @@ function management.create_bindings()
 	})
 
 	-- Trigger on reading an existing file
-	vim.api.nvim_create_autocmd("BufRead", {
+	vim.api.nvim_create_autocmd("BufReadPost", {
 		pattern = "*",
 		callback = function()
 			if state.autoManage then
