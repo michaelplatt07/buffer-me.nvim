@@ -123,17 +123,7 @@ function bufferme.clear_buffer_list()
 end
 
 function bufferme.set_first_hotswap()
-	print("Input buffer number for first hotswap:")
-	local idx = vim.fn.nr2char(vim.fn.getchar())
-	if idx == "q" then
-		return
-	elseif idx == "\r" then
-		state.firstBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
-		windower.render_hotswap_lines()
-	else
-		state.firstBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
-		windower.render_hotswap_lines()
-	end
+	state.firstBufHotswap = vim.api.nvim_buf_get_name(0)
 end
 
 function bufferme.set_first_hotswap_from_window()
@@ -142,17 +132,7 @@ function bufferme.set_first_hotswap_from_window()
 end
 
 function bufferme.set_second_hotswap()
-	print("Input buffer number for second hotswap:")
-	local idx = vim.fn.nr2char(vim.fn.getchar())
-	if idx == "q" then
-		return
-	elseif idx == "\r" then
-		state.secondBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
-		windower.render_hotswap_lines()
-	else
-		state.secondBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
-		windower.render_hotswap_lines()
-	end
+	state.secondBufHotswap = vim.api.nvim_buf_get_name(0)
 end
 
 function bufferme.set_second_hotswap_from_window()
