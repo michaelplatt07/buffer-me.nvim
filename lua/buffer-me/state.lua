@@ -29,6 +29,7 @@ function state.append_to_buf_list(buf)
 		for idx = 2, #state.bufList do
 			if idx < #state.bufList then
 				state.bufList[idx] = state.bufList[idx + 1]
+				state.bufList[1] = vim.api.nvim_buf_get_name(buf)
 			end
 		end
 	else
