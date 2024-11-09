@@ -37,16 +37,13 @@ function state.append_to_buf_list(buf)
 			local buf_name = vim.api.nvim_buf_get_name(buf)
 			if val == "" and state.check_for_dup_buf(buf_name) == false then
 				state.bufList[idx] = buf_name
+				if idx >= 10 then
+					-- Set the state to full only if the last index is being set
+					state.isBufListFull = true
+				end
 				break
 			end
 		end
-	end
-
-	-- Set the full state appropriately
-	if #state.bufList >= 10 then
-		state.isBufListFull = true
-	else
-		state.isBufListFull = false
 	end
 end
 
