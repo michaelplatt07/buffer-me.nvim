@@ -123,7 +123,7 @@ function bufferme.clear_buffer_list()
 end
 
 function bufferme.set_first_hotswap()
-	state.firstBufHotswap = vim.api.nvim_buf_get_name(0)
+	state.firstBufHotswap = 0
 end
 
 function bufferme.set_first_hotswap_from_window()
@@ -132,7 +132,7 @@ function bufferme.set_first_hotswap_from_window()
 end
 
 function bufferme.set_second_hotswap()
-	state.secondBufHotswap = vim.api.nvim_buf_get_name(0)
+	state.secondBufHotswap = 0
 end
 
 function bufferme.set_second_hotswap_from_window()
