@@ -70,6 +70,7 @@ end
 function state.remove_buf_by_num(num)
 	local converted_num = tonumber(num)
 	state.bufList[converted_num] = ""
+	state.isBufListFull = false
 end
 
 function state.go_next_buffer()
