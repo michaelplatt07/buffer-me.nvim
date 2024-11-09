@@ -24,8 +24,8 @@ local state = {
 }
 
 function state.init_required_buffers()
-	if state.bufListBufr == nil then
-		state.bufListBufr = vim.api.nvim_create_buf(false, true)
+	if state.bufListBuf == nil then
+		state.bufListBuf = vim.api.nvim_create_buf(false, true)
 	end
 
 	if state.hotswapBuf == nil then
