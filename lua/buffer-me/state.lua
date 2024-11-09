@@ -24,8 +24,13 @@ local state = {
 }
 
 function state.init_required_buffers()
-	state.bufListBufr = vim.api.nvim_create_buf(false, true)
-	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+	if state.bufListBufr == nil then
+		state.bufListBufr = vim.api.nvim_create_buf(false, true)
+	end
+
+	if state.hotswapBuf == nil then
+		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+	end
 end
 
 function state.append_to_buf_list(buf)

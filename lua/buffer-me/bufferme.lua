@@ -36,6 +36,9 @@ function bufferme.open_buffer_at_idx(idx)
 end
 
 function bufferme.open_buffers_list()
+	-- Initialize the required buffers
+	state.init_required_buffers()
+
 	-- Callback for when the cursor moves around in the buffer
 	vim.api.nvim_create_autocmd({ "CursorMoved" }, {
 		buffer = state.bufListBuf,
