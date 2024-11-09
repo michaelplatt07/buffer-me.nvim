@@ -1,7 +1,7 @@
 local state = {
 	autoManage = false,
-	bufListBuf = vim.api.nvim_create_buf(false, true),
-	hotswapBuf = vim.api.nvim_create_buf(false, true),
+	bufListBuf = nil,
+	hotswapBuf = nil,
 	hotswapWindowHandle = nil,
 	bufList = {
 		[1] = "",
@@ -22,6 +22,11 @@ local state = {
 	secondBufHotswap = nil,
 	isBufListFull = false,
 }
+
+function state.init_required_buffers()
+	state.bufListBufr = vim.api.nvim_create_buf(false, true)
+	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+end
 
 function state.append_to_buf_list(buf)
 	if state.isBufListFull then

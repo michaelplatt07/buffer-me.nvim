@@ -4,6 +4,9 @@ local state = require("buffer-me.state")
 local management = require("buffer-me.managment")
 local M = {}
 
+-- Initialize the required buffers
+state.init_required_buffers()
+
 function M.open()
 	-- Opens the buffer management list
 	bufferme.open_buffers_list()
