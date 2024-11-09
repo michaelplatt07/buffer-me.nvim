@@ -164,7 +164,16 @@ function bufferme.toggle_hotswap_buffers()
 	-- TODO(map) Might need to include a check here to make sure the window is visible??
 	-- Get the current windows buffer and name
 	local bufnr = vim.api.nvim_win_get_buf(0)
-	if state.firstBufHotswap ~= bufnr then
+	if state.firstBufHotswap == nil and state.secondBufHotswap == nil then
+		-- No hotswaps set so we don't do anything
+		return
+	elseif state.firstBufHotswap ~= nil and state.secondBufHotswap == nil then
+		-- If there is a first hotswap but there is no second go there
+		vim.api.nvim_set_current_buf(state.firstBufHotswap)
+	elseif state.firstBufHotswap == nil and state.secondBufHotswap ~= nil then
+		-- If there is no first hotswap but there is a second go there
+		vim.api.nvim_set_current_buf(state.secondBufHotswap)
+	elseif state.firstBufHotswap ~= bufnr then
 		-- Not on the current first buf hotswap
 		vim.api.nvim_set_current_buf(state.firstBufHotswap)
 	elseif state.firstBufHotswap == bufnr and state.secondBufHotswap ~= nil then
