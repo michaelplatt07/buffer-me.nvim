@@ -1,4 +1,5 @@
 local state = {
+	autoManage = false,
 	bufListBuf = vim.api.nvim_create_buf(false, true),
 	hotswapBuf = vim.api.nvim_create_buf(false, true),
 	hotswapWindowHandle = nil,
@@ -12,27 +13,39 @@ local state = {
 		[7] = "",
 		[8] = "",
 		[9] = "",
-		[0] = "",
+		[10] = "",
 	},
 	bufNumToLineNumMap = {},
 	selectedRow = nil,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
+	isBufListFull = false,
 }
 
 function state.append_to_buf_list(buf)
-	-- TODO(map) Prevent appending if the buffer list is greater than 10 as we will only support hotkeys between
-	-- 0 and 9 for quick access
-	-- TODO(map) This needs to be smart and insert at the lowest value that is an empty string
-	for idx, val in ipairs(state.bufList) do
-		local buf_name = vim.api.nvim_buf_get_name(buf)
-		if val == "" and state.check_for_dup_buf(buf_name) == false then
-			state.bufList[idx] = buf_name
-			break
+	if state.isBufListFull then
+		-- Move everything down by one and then set the current buffer at index 1
+		for idx = 2, #state.bufList do
+			if idx < #state.bufList then
+				state.bufList[idx] = state.bufList[idx + 1]
+				state.bufList[1] = vim.api.nvim_buf_get_name(buf)
+			end
+		end
+	else
+		-- Check for duplicate name and if present don't add, otheriwse add at the next open space
+		for idx, val in ipairs(state.bufList) do
+			local buf_name = vim.api.nvim_buf_get_name(buf)
+			if val == "" and state.check_for_dup_buf(buf_name) == false then
+				state.bufList[idx] = buf_name
+				if idx >= 10 then
+					-- Set the state to full only if the last index is being set
+					state.isBufListFull = true
+				end
+				break
+			end
 		end
 	end
-	-- table.insert(state.bufList, vim.api.nvim_buf_get_name(buf))
 end
 
 function state.check_for_dup_buf(buf_name)
@@ -57,6 +70,7 @@ end
 function state.remove_buf_by_num(num)
 	local converted_num = tonumber(num)
 	state.bufList[converted_num] = ""
+	state.isBufListFull = false
 end
 
 function state.go_next_buffer()

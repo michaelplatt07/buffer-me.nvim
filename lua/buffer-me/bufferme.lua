@@ -123,17 +123,7 @@ function bufferme.clear_buffer_list()
 end
 
 function bufferme.set_first_hotswap()
-	print("Input buffer number for first hotswap:")
-	local idx = vim.fn.nr2char(vim.fn.getchar())
-	if idx == "q" then
-		return
-	elseif idx == "\r" then
-		state.firstBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
-		windower.render_hotswap_lines()
-	else
-		state.firstBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
-		windower.render_hotswap_lines()
-	end
+	state.firstBufHotswap = vim.api.nvim_win_get_buf(0)
 end
 
 function bufferme.set_first_hotswap_from_window()
@@ -142,17 +132,7 @@ function bufferme.set_first_hotswap_from_window()
 end
 
 function bufferme.set_second_hotswap()
-	print("Input buffer number for second hotswap:")
-	local idx = vim.fn.nr2char(vim.fn.getchar())
-	if idx == "q" then
-		return
-	elseif idx == "\r" then
-		state.secondBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
-		windower.render_hotswap_lines()
-	else
-		state.secondBufHotswap = vim.fn.bufnr(state.bufList[tonumber(idx)])
-		windower.render_hotswap_lines()
-	end
+	state.secondBufHotswap = vim.api.nvim_win_get_buf(0)
 end
 
 function bufferme.set_second_hotswap_from_window()
@@ -164,7 +144,16 @@ function bufferme.toggle_hotswap_buffers()
 	-- TODO(map) Might need to include a check here to make sure the window is visible??
 	-- Get the current windows buffer and name
 	local bufnr = vim.api.nvim_win_get_buf(0)
-	if state.firstBufHotswap ~= bufnr then
+	if state.firstBufHotswap == nil and state.secondBufHotswap == nil then
+		-- No hotswaps set so we don't do anything
+		return
+	elseif state.firstBufHotswap ~= nil and state.secondBufHotswap == nil then
+		-- If there is a first hotswap but there is no second go there
+		vim.api.nvim_set_current_buf(state.firstBufHotswap)
+	elseif state.firstBufHotswap == nil and state.secondBufHotswap ~= nil then
+		-- If there is no first hotswap but there is a second go there
+		vim.api.nvim_set_current_buf(state.secondBufHotswap)
+	elseif state.firstBufHotswap ~= bufnr then
 		-- Not on the current first buf hotswap
 		vim.api.nvim_set_current_buf(state.firstBufHotswap)
 	elseif state.firstBufHotswap == bufnr and state.secondBufHotswap ~= nil then
