@@ -34,27 +34,22 @@ function state.init_required_buffers()
 end
 
 function state.append_to_buf_list(buf)
-	if state.isBufListFull then
-		-- Move everything down by one and then set the current buffer at index 1
-		for idx = 2, #state.bufList do
-			if idx < #state.bufList then
-				state.bufList[idx] = state.bufList[idx + 1]
-				state.bufList[1] = vim.api.nvim_buf_get_name(buf)
-			end
+	local buf_name = vim.api.nvim_buf_get_name(buf)
+
+	-- Return early if the buffer already exists in the list
+	if state.check_for_dup_buf(buf_name) == true then
+		return
+	end
+	-- Otherwise shift everything down and push the new value on the top
+	local new_value = buf_name
+	local original_value = nil
+	for idx, value in ipairs(state.bufList) do
+		if idx == #state.bufList and state.bufList[idx] ~= "" then
+			state.isBufListFull = true
 		end
-	else
-		-- Check for duplicate name and if present don't add, otheriwse add at the next open space
-		for idx, val in ipairs(state.bufList) do
-			local buf_name = vim.api.nvim_buf_get_name(buf)
-			if val == "" and state.check_for_dup_buf(buf_name) == false then
-				state.bufList[idx] = buf_name
-				if idx >= 10 then
-					-- Set the state to full only if the last index is being set
-					state.isBufListFull = true
-				end
-				break
-			end
-		end
+		original_value = value
+		state.bufList[idx] = buf_name
+		buf_name = original_value
 	end
 end
 
