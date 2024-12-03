@@ -14,8 +14,19 @@ function management.create_bindings()
 		end,
 	})
 
-	-- Trigger on reading an existing file
+	-- Trigger on reading a file for the first time and loading it into memory
 	vim.api.nvim_create_autocmd("BufReadPost", {
+		pattern = "*",
+		callback = function()
+			if state.autoManage then
+				local bufnr = vim.api.nvim_get_current_buf()
+				state.append_to_buf_list(bufnr)
+			end
+		end,
+	})
+
+	-- Trigger on switching to a buffer that has already been read into memory.
+	vim.api.nvim_create_autocmd("BufEnter", {
 		pattern = "*",
 		callback = function()
 			if state.autoManage then
