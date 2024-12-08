@@ -61,6 +61,14 @@ function M.toggle_hotswap()
 	bufferme.toggle_hotswap_buffers()
 end
 
+function M.open_first()
+	bufferme.open_first_hotswap()
+end
+
+function M.open_second()
+	bufferme.open_second_hotswap()
+end
+
 function M.toggle_last_buffer()
 	-- Toggles to the most previously viewed buffer
 end
