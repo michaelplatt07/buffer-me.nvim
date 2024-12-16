@@ -71,6 +71,7 @@ end
 
 function M.toggle_last_buffer()
 	-- Toggles to the most previously viewed buffer
+    bufferme.open_most_recent_buffer()
 end
 
 function M.setup(config)

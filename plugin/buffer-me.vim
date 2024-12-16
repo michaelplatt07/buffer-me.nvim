@@ -20,4 +20,4 @@ command! -nargs=0 BufferSetSecondHotswap lua require("buffer-me").set_second_hot
 command! -nargs=0 BufferToggleHotswap lua require("buffer-me").toggle_hotswap()
 command! -nargs=0 BufferOpenFirstHotswap lua require("buffer-me").open_first()
 command! -nargs=0 BufferOpenSecondHotswap lua require("buffer-me").open_second()
-command! -nargs=0 BufferOpenMostRecent lua require("buffer-me").open_most_recent_buffer()
+command! -nargs=0 BufferOpenMostRecent lua require("buffer-me").toggle_last_buffer()
