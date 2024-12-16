@@ -4,7 +4,7 @@ local management = {}
 
 function management.create_bindings()
 	-- Handle any pre-processing of the buffer needed
-	vim.api.nvim_create_autocmd("BufReadPre", {
+	vim.api.nvim_create_autocmd("BufLeave", {
 		pattern = "*",
 		callback = function()
 			state.mostRecentBuffer = vim.api.nvim_get_current_buf()
