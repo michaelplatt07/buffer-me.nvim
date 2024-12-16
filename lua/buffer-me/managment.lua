@@ -3,6 +3,14 @@ local bufferme = require("buffer-me.bufferme")
 local management = {}
 
 function management.create_bindings()
+	-- Handle any pre-processing of the buffer needed
+	vim.api.nvim_create_autocmd("BufReadPre", {
+		pattern = "*",
+		callback = function()
+			state.mostRecentBuffer = vim.api.nvim_get_current_buf()
+		end,
+	})
+
 	-- Trigger on opening a new file
 	vim.api.nvim_create_autocmd("BufNewFile", {
 		pattern = "*",

@@ -3,6 +3,10 @@ local windower = require("buffer-me.windower")
 local keybindings = require("buffer-me.keybindings")
 local bufferme = {}
 
+function bufferme.open_most_recent_buffer()
+	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
+end
+
 function bufferme.open_selected_buffer()
 	local selected_buf_handle = nil
 	if state.selectedRow then
