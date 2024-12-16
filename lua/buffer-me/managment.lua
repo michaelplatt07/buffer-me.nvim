@@ -8,8 +8,8 @@ function management.create_bindings()
 		pattern = "*",
 		callback = function()
 			local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
-			local buffTypeEmpty = vim.api.nvim_buf_get_option(0, "buftype") == ""
-			if ~bufferModifiable and ~buffTypeEmpty then
+			local buffType = vim.api.nvim_buf_get_option(0, "buftype")
+			if not bufferModifiable and buffType ~= "" then
 				state.mostRecentBuffer = vim.api.nvim_get_current_buf()
 			end
 		end,
