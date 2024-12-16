@@ -7,9 +7,17 @@ function management.create_bindings()
 	vim.api.nvim_create_autocmd("BufLeave", {
 		pattern = "*",
 		callback = function()
+			local ignoreTypes = { "nofile" }
 			local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
 			local buffType = vim.api.nvim_buf_get_option(0, "buftype")
-			if not bufferModifiable and buffType ~= "" then
+			local shouldIgnore = false
+			for _, bType in ipairs(ignoreTypes) do
+				if buffType == bType then
+					shouldIgnore = true
+					break
+				end
+			end
+			if bufferModifiable and not shouldIgnore then
 				state.mostRecentBuffer = vim.api.nvim_get_current_buf()
 			end
 		end,
