@@ -36,7 +36,7 @@ function management.create_bindings()
 					break
 				end
 			end
-			local backToCurrBuf = vim.api.nvim_get_current_buf() == state.mostRecentBuffer
+			local backToCurrBuf = vim.api.nvim_get_current_buf() == state.lastExitedBuffer
 			if bufferModifiable and not shouldIgnore and not backToCurrBuf then
 				state.mostRecentBuffer = state.lastExitedBuffer
 			end
