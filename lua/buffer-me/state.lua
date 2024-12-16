@@ -21,6 +21,7 @@ local state = {
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
 	isBufListFull = false,
+	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
 }
 

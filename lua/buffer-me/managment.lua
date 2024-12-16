@@ -18,11 +18,30 @@ function management.create_bindings()
 				end
 			end
 			if bufferModifiable and not shouldIgnore then
-				state.mostRecentBuffer = vim.api.nvim_get_current_buf()
+				state.lastExitedBuffer = vim.api.nvim_get_current_buf()
 			end
 		end,
 	})
 
+	vim.api.nvim_create_autocmd("BufEnter", {
+		pattern = "*",
+		callback = function()
+			local ignoreTypes = { "nofile" }
+			local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
+			local buffType = vim.api.nvim_buf_get_option(0, "buftype")
+			local shouldIgnore = false
+			for _, bType in ipairs(ignoreTypes) do
+				if buffType == bType then
+					shouldIgnore = true
+					break
+				end
+			end
+			local backToCurrBuf = vim.api.nvim_get_current_buf() == state.mostRecentBuffer
+			if bufferModifiable and not shouldIgnore and not backToCurrBuf then
+				state.mostRecentBuffer = state.lastExitedBuffer
+			end
+		end,
+	})
 	-- Trigger on opening a new file
 	vim.api.nvim_create_autocmd("BufNewFile", {
 		pattern = "*",
