@@ -7,7 +7,11 @@ function management.create_bindings()
 	vim.api.nvim_create_autocmd("BufLeave", {
 		pattern = "*",
 		callback = function()
-			state.mostRecentBuffer = vim.api.nvim_get_current_buf()
+			local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
+			local buffTypeEmpty = vim.api.nvim_buf_get_option(0, "buftype") == ""
+			if ~bufferModifiable and ~buffTypeEmpty then
+				state.mostRecentBuffer = vim.api.nvim_get_current_buf()
+			end
 		end,
 	})
 
