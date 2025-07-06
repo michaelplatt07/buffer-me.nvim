@@ -19,7 +19,7 @@ function windower.render_buf_list_lines()
 	for idx, value in pairs(state.bufList) do
 		if value ~= "" then
 			table.insert(state.bufNumToLineNumMap, idx)
-			table.insert(lines, string.format("*%s: %s", idx, value))
+			table.insert(lines, string.format("%s: %s", idx, value))
 		end
 
 		-- Highlight the current line
