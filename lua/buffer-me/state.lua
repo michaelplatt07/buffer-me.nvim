@@ -1,29 +1,21 @@
 local state = {
+	-- Configs
 	autoManage = false,
+	recentToTop = false,
+
+	-- State management
+	isBufListFull = false,
 	bufListBuf = nil,
 	hotswapBuf = nil,
 	hotswapWindowHandle = nil,
-	bufList = {
-		[1] = "",
-		[2] = "",
-		[3] = "",
-		[4] = "",
-		[5] = "",
-		[6] = "",
-		[7] = "",
-		[8] = "",
-		[9] = "",
-		[10] = "",
-	},
-	bufNumToLineNumMap = {},
+	bufList = {},
+	maxBufferTrack = 10, -- Default to 10 but this can be set in configs
 	selectedRow = nil,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
-	isBufListFull = false,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
-	recentToTop = nil,
 }
 
 function state.init_required_buffers()
@@ -37,16 +29,10 @@ function state.init_required_buffers()
 end
 
 local function shiftAndInsertBuffer(buf_name)
-	local new_value = buf_name
-	local original_value = nil
-	for idx, value in ipairs(state.bufList) do
-		if idx == #state.bufList and state.bufList[idx] ~= "" then
-			state.isBufListFull = true
-		end
-		original_value = value
-		state.bufList[idx] = buf_name
-		buf_name = original_value
+	if #state.bufList + 1 >= state.maxBufferTrack then
+		state.isBufListFull = true
 	end
+	table.insert(state.bufList, 1, buf_name)
 end
 
 function state.append_to_buf_list(buf)
@@ -61,11 +47,17 @@ function state.append_to_buf_list(buf)
 		return
 	elseif existsInList == true and state.recentToTop == true then
 		-- Pop the item from the list and shift everything down
-		state.bufList[dup_loc] = ""
+		table.remove(state.bufList, dup_loc)
 		shiftAndInsertBuffer(buf_name)
 	else
 		-- TODO(map) There should be a call that will remove the buffer from the list first in the case of the resetToTop flag being set
 		shiftAndInsertBuffer(buf_name)
+	end
+	--
+	-- Pop the last item from the list as it shouldn't be there anymore
+	-- TODO: Clean up might need to be actually removing everything from the max onward.
+	if state.isBufListFull == true then
+		table.remove(state.bufList, #state.bufList)
 	end
 end
 
@@ -83,16 +75,21 @@ end
 
 function state.add_buf_to_num(num, buf)
 	local converted_num = tonumber(num)
-	if state.bufList[converted_num] == "" then
-		state.bufList[converted_num] = vim.api.nvim_buf_get_name(buf)
-	else
-		table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
+	table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
+	if #state.bufList + 1 >= state.maxBufferTrack then
+		state.isBufListFull = true
+	end
+
+	-- Pop the last item from the list as it shouldn't be there anymore
+	-- TODO: Clean up might need to be actually removing everything from the max onward.
+	if state.isBufListFull == true then
+		table.remove(state.bufList, #state.bufList)
 	end
 end
 
 function state.remove_buf_by_num(num)
 	local converted_num = tonumber(num)
-	state.bufList[converted_num] = ""
+	table.remove(state.bufList, converted_num)
 	state.isBufListFull = false
 end
 
@@ -189,7 +186,7 @@ function state.set_second_hotswap_from_window()
 end
 
 function state.update_selected_row()
-	state.selectedRow = state.bufNumToLineNumMap[vim.api.nvim_win_get_cursor(0)[1]]
+	state.selectedRow = state.bufList[vim.api.nvim_win_get_cursor(0)[1]]
 end
 
 function state.clear_selected_row()
@@ -197,19 +194,7 @@ function state.clear_selected_row()
 end
 
 function state.clear_state()
-	state.bufList = {
-		[1] = "",
-		[2] = "",
-		[3] = "",
-		[4] = "",
-		[5] = "",
-		[6] = "",
-		[7] = "",
-		[8] = "",
-		[9] = "",
-		[0] = "",
-	}
-	state.bufNumToLineNumMap = {}
+	state.bufList = {}
 	state.selectedRow = nil
 end
 

@@ -49,7 +49,7 @@ function TestState:test_append_no_entries_no_duplicate()
 		return "this_is_a_buffer_name"
 	end
 
-	luaunit.assertEquals(state.bufList[1], "")
+	luaunit.assertEquals(state.bufList[1], nil)
 	state.append_to_buf_list(0)
 	luaunit.assertEquals(state.bufList[1], "this_is_a_buffer_name")
 end
@@ -94,7 +94,7 @@ function TestState:test_append_duplicate_no_reset_flag()
 	luaunit.assertEquals(state.bufList[1], "place_holder_1")
 	luaunit.assertEquals(state.bufList[2], "place_holder_2")
 	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[3], "")
+	luaunit.assertEquals(state.bufList[3], nil)
 end
 
 function TestState:test_append_duplicate_reset_flag()
@@ -122,7 +122,7 @@ function TestState:test_append_duplicate_reset_flag()
 	luaunit.assertEquals(state.bufList[1], "place_holder_3")
 	luaunit.assertEquals(state.bufList[2], "place_holder_1")
 	luaunit.assertEquals(state.bufList[3], "place_holder_2")
-	luaunit.assertEquals(state.bufList[4], "")
+	luaunit.assertEquals(#state.bufList, 3)
 end
 
 function TestState.test_append_last_entry()
@@ -168,6 +168,7 @@ function TestState:test_append_full()
 	luaunit.assertEquals(state.bufList[1], "place_holder_11")
 	luaunit.assertEquals(state.bufList[2], "place_holder_1")
 	luaunit.assertEquals(state.bufList[3], "place_holder_2")
+	luaunit.assertEquals(#state.bufList, 10)
 end
 
 function TestState:test_clear_selected_row()
@@ -182,7 +183,7 @@ function TestState:test_add_buf_to_num_to_empty_spot()
 		return "place_holder"
 	end
 
-	luaunit.assertEquals(state.bufList[4], "")
+	luaunit.assertEquals(state.bufList[4], nil)
 	state.add_buf_to_num(4, 0)
 	luaunit.assertEquals(state.bufList[4], "place_holder")
 end
@@ -198,6 +199,7 @@ function TestState:test_add_buf_to_num_to_filled_spot()
 	luaunit.assertEquals(state.bufList[4], "place_holder_4")
 	state.add_buf_to_num(4, 0)
 	luaunit.assertEquals(state.bufList[4], "replacement_name")
+	luaunit.assertEquals(#state.bufList, 10)
 end
 
 function TestState:test_remove_buf_by_num_value_present()
@@ -207,13 +209,13 @@ function TestState:test_remove_buf_by_num_value_present()
 
 	luaunit.assertEquals(state.bufList[4], "place_holder_4")
 	state.remove_buf_by_num(4)
-	luaunit.assertEquals(state.bufList[4], "")
+	luaunit.assertEquals(state.bufList[4], "place_holder_5")
 end
 
 function TestState:test_remove_buf_by_num_no_value_present()
-	luaunit.assertEquals(state.bufList[4], "")
+	luaunit.assertEquals(state.bufList[4], nil)
 	state.remove_buf_by_num(4)
-	luaunit.assertEquals(state.bufList[4], "")
+	luaunit.assertEquals(state.bufList[4], nil)
 end
 
 function TestState.test_go_next_buffer_currently_empty()
@@ -236,23 +238,12 @@ function TestState.test_go_next_buffer_immediately_after()
 	state.go_next_buffer()
 	luaunit.assertEquals(state.currSelectedBuffer, 2)
 end
-
-function TestState.test_go_next_buffer_skips_number()
-	state.bufList[1] = "place_holder_1"
-	state.bufList[5] = "place_holder_5"
-	state.currSelectedBuffer = 1
-
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 5)
-end
-
 function TestState.test_go_next_buffer_wraps_to_beginning()
 	state.bufList[1] = "place_holder_1"
-	state.bufList[5] = "place_holder_5"
-	state.currSelectedBuffer = 5
+	state.bufList[2] = "place_holder_5"
+	state.currSelectedBuffer = 2
 
-	luaunit.assertEquals(state.currSelectedBuffer, 5)
+	luaunit.assertEquals(state.currSelectedBuffer, 2)
 	state.go_next_buffer()
 	luaunit.assertEquals(state.currSelectedBuffer, 1)
 end
@@ -278,24 +269,14 @@ function TestState.test_go_prev_buffer_immediately_before()
 	luaunit.assertEquals(state.currSelectedBuffer, 1)
 end
 
-function TestState.test_go_prev_buffer_skips_number()
-	state.bufList[1] = "place_holder_1"
-	state.bufList[5] = "place_holder_5"
-	state.currSelectedBuffer = 5
-
-	luaunit.assertEquals(state.currSelectedBuffer, 5)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-end
-
 function TestState.test_go_prev_buffer_wraps_to_beginning()
 	state.bufList[1] = "place_holder_1"
-	state.bufList[5] = "place_holder_5"
+	state.bufList[2] = "place_holder_5"
 	state.currSelectedBuffer = 1
 
 	luaunit.assertEquals(state.currSelectedBuffer, 1)
 	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 5)
+	luaunit.assertEquals(state.currSelectedBuffer, 2)
 end
 
 os.exit(luaunit.LuaUnit.run())
