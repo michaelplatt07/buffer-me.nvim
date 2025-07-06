@@ -238,6 +238,7 @@ function TestState.test_go_next_buffer_immediately_after()
 	state.go_next_buffer()
 	luaunit.assertEquals(state.currSelectedBuffer, 2)
 end
+
 function TestState.test_go_next_buffer_wraps_to_beginning()
 	state.bufList[1] = "place_holder_1"
 	state.bufList[2] = "place_holder_5"
@@ -272,6 +273,7 @@ end
 function TestState.test_go_prev_buffer_wraps_to_beginning()
 	state.bufList[1] = "place_holder_1"
 	state.bufList[2] = "place_holder_5"
+
 	state.currSelectedBuffer = 1
 
 	luaunit.assertEquals(state.currSelectedBuffer, 1)
