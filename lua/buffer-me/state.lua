@@ -32,7 +32,9 @@ local function shiftAndInsertBuffer(buf_name)
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
 	end
-	table.insert(state.bufList, 1, buf_name)
+	if buf_name ~= nil and buf_name ~= "" then
+		table.insert(state.bufList, 1, buf_name)
+	end
 end
 
 function state.append_to_buf_list(buf)
@@ -50,7 +52,6 @@ function state.append_to_buf_list(buf)
 		table.remove(state.bufList, dup_loc)
 		shiftAndInsertBuffer(buf_name)
 	else
-		-- TODO(map) There should be a call that will remove the buffer from the list first in the case of the resetToTop flag being set
 		shiftAndInsertBuffer(buf_name)
 	end
 	--
