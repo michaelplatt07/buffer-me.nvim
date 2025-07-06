@@ -122,6 +122,7 @@ function TestState:test_append_duplicate_reset_flag()
 	luaunit.assertEquals(state.bufList[1], "place_holder_3")
 	luaunit.assertEquals(state.bufList[2], "place_holder_1")
 	luaunit.assertEquals(state.bufList[3], "place_holder_2")
+	luaunit.assertEquals(state.bufList[4], "")
 end
 
 function TestState.test_append_last_entry()

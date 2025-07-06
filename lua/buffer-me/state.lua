@@ -60,6 +60,7 @@ function state.append_to_buf_list(buf)
 	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
 		return
 	else
+		-- TODO(map) There should be a call that will remove the buffer from the list first in the case of the resetToTop flag being set
 		shiftAndInsertBuffer(buf_name)
 	end
 end
