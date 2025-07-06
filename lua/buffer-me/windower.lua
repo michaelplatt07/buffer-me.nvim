@@ -19,13 +19,11 @@ function windower.render_buf_list_lines()
 	for idx, value in pairs(state.bufList) do
 		if value ~= "" then
 			table.insert(state.bufNumToLineNumMap, idx)
-			-- Conditionally add an asterisk to show the current buffer in the buffer list
-			if idx == state.currSelectedBuffer then
-				table.insert(lines, string.format("*%s: %s", idx, value))
-			else
-				table.insert(lines, string.format("%s: %s", idx, value))
-			end
+			table.insert(lines, string.format("*%s: %s", idx, value))
 		end
+
+		-- Highlight the current line
+		windower.highlight_current_mark(idx)
 	end
 
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
@@ -72,6 +70,19 @@ function windower.close_buffer_me()
 	state.bufListBuf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
 	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+end
+
+--- Wrapper function around Neovim's line highlight functionality
+--- @param line_num number The 1-indexed value of the line number
+function windower.highlight_current_mark(line_num)
+	-- Subtract one from the line_num value because lua is 1 indexed
+	vim.api.nvim_buf_add_highlight(state.markBufHandle, -1, "CursorLine", line_num - 1, 0, -1)
+end
+
+--- Wrapper function around Neovim's line highlight removal functionality
+--- @param line_num number The 1-indexed value of the line number
+function windower.remove_highlight(line_num)
+	vim.api.nvim_buf_clear_namespace(state.markBufHandle, -1, line_num - 1, -1)
 end
 
 return windower

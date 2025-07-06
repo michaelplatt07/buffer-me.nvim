@@ -23,6 +23,7 @@ local state = {
 	isBufListFull = false,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
+	recentToTop = nil,
 }
 
 function state.init_required_buffers()
@@ -35,17 +36,7 @@ function state.init_required_buffers()
 	end
 end
 
-function state.append_to_buf_list(buf)
-	local buf_name = vim.api.nvim_buf_get_name(buf)
-
-	-- Replace the fully qualified file name with just the relative path
-	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
-
-	-- Return early if the buffer already exists in the list
-	if state.check_for_dup_buf(buf_name) == true then
-		return
-	end
-	-- Otherwise shift everything down and push the new value on the top
+local function shiftAndInsertBuffer(buf_name)
 	local new_value = buf_name
 	local original_value = nil
 	for idx, value in ipairs(state.bufList) do
@@ -55,6 +46,21 @@ function state.append_to_buf_list(buf)
 		original_value = value
 		state.bufList[idx] = buf_name
 		buf_name = original_value
+	end
+end
+
+function state.append_to_buf_list(buf)
+	local buf_name = vim.api.nvim_buf_get_name(buf)
+
+	-- Replace the fully qualified file name with just the relative path
+	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
+
+	-- Return early if the buffer already exists in the list
+	local existsInList = state.check_for_dup_buf(buf_name)
+	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
+		return
+	else
+		shiftAndInsertBuffer(buf_name)
 	end
 end
 

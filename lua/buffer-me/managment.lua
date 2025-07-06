@@ -1,5 +1,4 @@
 local state = require("buffer-me.state")
-local bufferme = require("buffer-me.bufferme")
 local management = {}
 
 function management.create_bindings()

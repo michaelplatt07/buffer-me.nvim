@@ -6,12 +6,6 @@ package.path = "./lua/?.lua;" .. package.path
 local state
 local luaunit = require("luaunit")
 
--- Mock Vim so we can mock returns on method bindings
-vim = {
-	api = {},
-}
--- End mocking
-
 require("luacov")
 
 TestState = {}
@@ -19,6 +13,12 @@ TestState = {}
 -- Setting up and tearing down for each test
 function TestState:setup()
 	state = require("buffer-me.state")
+
+	-- Mock Vim api so we don't run into issues in tests
+	vim = {
+		api = {},
+		loop = {},
+	}
 end
 
 function TestState:teardown()
@@ -42,6 +42,13 @@ function TestState:test_append_no_entries_no_duplicate()
 	vim.api.nvim_buf_get_name = function()
 		return "this_is_a_buffer_name"
 	end
+	vim.loop.cwd = function()
+		return "this_is_a_buffer_name"
+	end
+	vim.pesc = function()
+		return "this_is_a_buffer_name"
+	end
+
 	luaunit.assertEquals(state.bufList[1], "")
 	state.append_to_buf_list(0)
 	luaunit.assertEquals(state.bufList[1], "this_is_a_buffer_name")
@@ -51,6 +58,13 @@ function TestState:test_append_with_entries_no_duplicate()
 	vim.api.nvim_buf_get_name = function()
 		return "this_is_a_buffer_name"
 	end
+	vim.loop.cwd = function()
+		return "this_is_a_buffer_name"
+	end
+	vim.pesc = function()
+		return "this_is_a_buffer_name"
+	end
+
 	state.bufList[1] = "place_holder_1_asdf"
 	state.bufList[2] = "place_holder_2_asdf"
 
@@ -62,10 +76,18 @@ function TestState:test_append_with_entries_no_duplicate()
 	luaunit.assertEquals(state.bufList[3], "place_holder_2_asdf")
 end
 
-function TestState:test_append_duplicate()
+function TestState:test_append_duplicate_no_reset_flag()
+	-- Tests leaving the buffer in the current list if it's already there
 	vim.api.nvim_buf_get_name = function()
 		return "place_holder_1"
 	end
+	vim.loop.cwd = function()
+		return "place_holder_1"
+	end
+	vim.pesc = function()
+		return "place_holder_1"
+	end
+
 	state.bufList[1] = "place_holder_1"
 	state.bufList[2] = "place_holder_2"
 
@@ -75,10 +97,44 @@ function TestState:test_append_duplicate()
 	luaunit.assertEquals(state.bufList[3], "")
 end
 
+function TestState:test_append_duplicate_reset_flag()
+	-- Tests duplicate that should shift to the top
+	vim.api.nvim_buf_get_name = function()
+		return "place_holder_3"
+	end
+	vim.loop.cwd = function()
+		return "place_holder_3"
+	end
+	vim.pesc = function()
+		return "place_holder_3"
+	end
+
+	state.recentToTop = true
+
+	state.bufList[1] = "place_holder_1"
+	state.bufList[2] = "place_holder_2"
+	state.bufList[3] = "place_holder_3"
+
+	luaunit.assertEquals(state.bufList[1], "place_holder_1")
+	luaunit.assertEquals(state.bufList[2], "place_holder_2")
+	luaunit.assertEquals(state.bufList[3], "place_holder_3")
+	state.append_to_buf_list(0)
+	luaunit.assertEquals(state.bufList[1], "place_holder_3")
+	luaunit.assertEquals(state.bufList[2], "place_holder_1")
+	luaunit.assertEquals(state.bufList[3], "place_holder_2")
+end
+
 function TestState.test_append_last_entry()
 	vim.api.nvim_buf_get_name = function()
 		return "place_holder_11"
 	end
+	vim.loop.cwd = function()
+		return "place_holder_11"
+	end
+	vim.pesc = function()
+		return "place_holder_11"
+	end
+
 	state.isBufListFull = true
 	for idx = 1, 9 do
 		state.bufList[idx] = "place_holder_" .. idx
@@ -95,6 +151,13 @@ function TestState:test_append_full()
 	vim.api.nvim_buf_get_name = function()
 		return "place_holder_11"
 	end
+	vim.loop.cwd = function()
+		return "place_holder_11"
+	end
+	vim.pesc = function()
+		return "place_holder_11"
+	end
+
 	state.isBufListFull = true
 	for idx = 1, 10 do
 		state.bufList[idx] = "place_holder_" .. idx

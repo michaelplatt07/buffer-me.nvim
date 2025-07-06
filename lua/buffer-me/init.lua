@@ -84,6 +84,9 @@ function M.setup(config)
 		if config.auto_manage ~= nil then
 			state.autoManage = config.auto_manage
 		end
+		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
+			state.recentToTop = config.most_recent_to_top
+		end
 	end
 
 	-- Create the bindings on the buffer events
