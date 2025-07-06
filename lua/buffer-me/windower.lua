@@ -17,13 +17,11 @@ end
 function windower.render_buf_list_lines()
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
-		if value ~= "" then
-			table.insert(lines, string.format("%s: %s", idx, value))
-		end
-
-		-- Highlight the current line
-		windower.highlight_current_mark(idx)
+		table.insert(lines, string.format("%s: %s", idx, value))
 	end
+
+	-- Highlight the current line
+	windower.highlight_current_mark(state.selectedRow)
 
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 end
