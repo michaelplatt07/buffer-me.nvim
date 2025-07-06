@@ -18,7 +18,6 @@ function windower.render_buf_list_lines()
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
 		if value ~= "" then
-			table.insert(state.bufNumToLineNumMap, idx)
 			table.insert(lines, string.format("%s: %s", idx, value))
 		end
 
@@ -59,7 +58,6 @@ end
 
 function windower.close_buffer_me()
 	-- Clean up the state
-	state.bufNumToLineNumMap = {}
 	state.clear_selected_row()
 
 	-- Reset modifiable flag so the buffer can be updated on the next search

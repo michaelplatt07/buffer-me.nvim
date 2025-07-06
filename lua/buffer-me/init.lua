@@ -71,7 +71,7 @@ end
 
 function M.toggle_last_buffer()
 	-- Toggles to the most previously viewed buffer
-    bufferme.open_most_recent_buffer()
+	bufferme.open_most_recent_buffer()
 end
 
 function M.setup(config)
@@ -86,6 +86,9 @@ function M.setup(config)
 		end
 		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
 			state.recentToTop = config.most_recent_to_top
+		end
+		if config.max_buffer_track ~= nil then
+			state.maxBufferTrack = config.max_buffer_track
 		end
 	end
 
