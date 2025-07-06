@@ -186,7 +186,7 @@ function state.set_second_hotswap_from_window()
 end
 
 function state.update_selected_row()
-	state.selectedRow = state.bufList[vim.api.nvim_win_get_cursor(0)[1]]
+	state.selectedRow = vim.api.nvim_win_get_cursor(0)[1]
 end
 
 function state.clear_selected_row()
