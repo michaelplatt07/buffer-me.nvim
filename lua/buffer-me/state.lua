@@ -56,9 +56,13 @@ function state.append_to_buf_list(buf)
 	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
 
 	-- Return early if the buffer already exists in the list
-	local existsInList = state.check_for_dup_buf(buf_name)
+	local existsInList, dup_loc = state.check_for_dup_buf(buf_name)
 	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
 		return
+	elseif existsInList == true and state.recentToTop == true then
+		-- Pop the item from the list and shift everything down
+		state.bufList[dup_loc] = ""
+		shiftAndInsertBuffer(buf_name)
 	else
 		-- TODO(map) There should be a call that will remove the buffer from the list first in the case of the resetToTop flag being set
 		shiftAndInsertBuffer(buf_name)
@@ -67,12 +71,14 @@ end
 
 function state.check_for_dup_buf(buf_name)
 	local is_dup = false
-	for _, val in ipairs(state.bufList) do
+	local dup_loc = nil
+	for idx, val in ipairs(state.bufList) do
 		if val == buf_name then
 			is_dup = true
+			dup_loc = idx
 		end
 	end
-	return is_dup
+	return is_dup, dup_loc
 end
 
 function state.add_buf_to_num(num, buf)
