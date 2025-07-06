@@ -1,7 +1,7 @@
 local state = {
 	autoManage = false,
-	bufListBuf = vim.api.nvim_create_buf(false, true),
-	hotswapBuf = vim.api.nvim_create_buf(false, true),
+	bufListBuf = nil,
+	hotswapBuf = nil,
 	hotswapWindowHandle = nil,
 	bufList = {
 		[1] = "",
@@ -21,41 +21,64 @@ local state = {
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
 	isBufListFull = false,
+	lastExitedBuffer = nil,
+	mostRecentBuffer = nil,
+	recentToTop = nil,
 }
 
+function state.init_required_buffers()
+	if state.bufListBuf == nil then
+		state.bufListBuf = vim.api.nvim_create_buf(false, true)
+	end
+
+	if state.hotswapBuf == nil then
+		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+	end
+end
+
+local function shiftAndInsertBuffer(buf_name)
+	local new_value = buf_name
+	local original_value = nil
+	for idx, value in ipairs(state.bufList) do
+		if idx == #state.bufList and state.bufList[idx] ~= "" then
+			state.isBufListFull = true
+		end
+		original_value = value
+		state.bufList[idx] = buf_name
+		buf_name = original_value
+	end
+end
+
 function state.append_to_buf_list(buf)
-	if state.isBufListFull then
-		-- Move everything down by one and then set the current buffer at index 1
-		for idx = 2, #state.bufList do
-			if idx < #state.bufList then
-				state.bufList[idx] = state.bufList[idx + 1]
-				state.bufList[1] = vim.api.nvim_buf_get_name(buf)
-			end
-		end
+	local buf_name = vim.api.nvim_buf_get_name(buf)
+
+	-- Replace the fully qualified file name with just the relative path
+	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
+
+	-- Return early if the buffer already exists in the list
+	local existsInList, dup_loc = state.check_for_dup_buf(buf_name)
+	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
+		return
+	elseif existsInList == true and state.recentToTop == true then
+		-- Pop the item from the list and shift everything down
+		state.bufList[dup_loc] = ""
+		shiftAndInsertBuffer(buf_name)
 	else
-		-- Check for duplicate name and if present don't add, otheriwse add at the next open space
-		for idx, val in ipairs(state.bufList) do
-			local buf_name = vim.api.nvim_buf_get_name(buf)
-			if val == "" and state.check_for_dup_buf(buf_name) == false then
-				state.bufList[idx] = buf_name
-				if idx >= 10 then
-					-- Set the state to full only if the last index is being set
-					state.isBufListFull = true
-				end
-				break
-			end
-		end
+		-- TODO(map) There should be a call that will remove the buffer from the list first in the case of the resetToTop flag being set
+		shiftAndInsertBuffer(buf_name)
 	end
 end
 
 function state.check_for_dup_buf(buf_name)
 	local is_dup = false
-	for _, val in ipairs(state.bufList) do
+	local dup_loc = nil
+	for idx, val in ipairs(state.bufList) do
 		if val == buf_name then
 			is_dup = true
+			dup_loc = idx
 		end
 	end
-	return is_dup
+	return is_dup, dup_loc
 end
 
 function state.add_buf_to_num(num, buf)

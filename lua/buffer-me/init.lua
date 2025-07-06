@@ -61,8 +61,17 @@ function M.toggle_hotswap()
 	bufferme.toggle_hotswap_buffers()
 end
 
+function M.open_first()
+	bufferme.open_first_hotswap()
+end
+
+function M.open_second()
+	bufferme.open_second_hotswap()
+end
+
 function M.toggle_last_buffer()
 	-- Toggles to the most previously viewed buffer
+    bufferme.open_most_recent_buffer()
 end
 
 function M.setup(config)
@@ -74,6 +83,9 @@ function M.setup(config)
 		end
 		if config.auto_manage ~= nil then
 			state.autoManage = config.auto_manage
+		end
+		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
+			state.recentToTop = config.most_recent_to_top
 		end
 	end
 

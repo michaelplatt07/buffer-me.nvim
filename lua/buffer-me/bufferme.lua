@@ -3,6 +3,10 @@ local windower = require("buffer-me.windower")
 local keybindings = require("buffer-me.keybindings")
 local bufferme = {}
 
+function bufferme.open_most_recent_buffer()
+	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
+end
+
 function bufferme.open_selected_buffer()
 	local selected_buf_handle = nil
 	if state.selectedRow then
@@ -36,6 +40,9 @@ function bufferme.open_buffer_at_idx(idx)
 end
 
 function bufferme.open_buffers_list()
+	-- Initialize the required buffers
+	state.init_required_buffers()
+
 	-- Callback for when the cursor moves around in the buffer
 	vim.api.nvim_create_autocmd({ "CursorMoved" }, {
 		buffer = state.bufListBuf,
@@ -165,6 +172,30 @@ function bufferme.toggle_hotswap_buffers()
 	else
 		-- Generic error case
 		print("Error in toggleing hotswap buffers")
+	end
+end
+
+function bufferme.open_first_hotswap()
+	-- Get the current windows buffer and name
+	local bufnr = vim.api.nvim_win_get_buf(0)
+	if state.firstBufHotswap == nil then
+		-- No first hotswap so nothing need be done
+		return
+	else
+		-- If there is a first hotswap open it
+		vim.api.nvim_set_current_buf(state.firstBufHotswap)
+	end
+end
+
+function bufferme.open_second_hotswap()
+	-- Get the current windows buffer and name
+	local bufnr = vim.api.nvim_win_get_buf(0)
+	if state.secondBufHotswap == nil then
+		-- No first hotswap so nothing need be done
+		return
+	else
+		-- If there is a first hotswap open it
+		vim.api.nvim_set_current_buf(state.secondBufHotswap)
 	end
 end
 
