@@ -27,7 +27,7 @@ end
 function bufferme.open_buffer_at_idx(idx)
 	local converted_idx = tonumber(idx)
 	-- Check first if we even have a buffer to open
-	if state.bufList[converted_idx] == "" then
+	if state.bufList[converted_idx] == nil then
 		return
 	else
 		local win_handle = vim.api.nvim_get_current_win()
