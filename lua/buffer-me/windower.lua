@@ -17,15 +17,8 @@ end
 function windower.render_buf_list_lines()
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
-		if value ~= "" then
-			table.insert(state.bufNumToLineNumMap, idx)
-			table.insert(lines, string.format("%s: %s", idx, value))
-		end
-
-		-- Highlight the current line
-		windower.highlight_current_mark(idx)
+		table.insert(lines, string.format("%s: %s", idx, value))
 	end
-
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
 end
 
@@ -59,7 +52,6 @@ end
 
 function windower.close_buffer_me()
 	-- Clean up the state
-	state.bufNumToLineNumMap = {}
 	state.clear_selected_row()
 
 	-- Reset modifiable flag so the buffer can be updated on the next search
