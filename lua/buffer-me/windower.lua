@@ -28,6 +28,17 @@ function windower.render_buf_list_lines()
 	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
 end
 
+local function clear_buf_list_lines()
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
+	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, -1, false, {})
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
+end
+
+function windower.re_render_buf_list_lines()
+	clear_buf_list_lines()
+	windower.render_buf_list_lines()
+end
+
 function windower.create_hot_swap_window()
 	return vim.api.nvim_open_win(state.hotswapBuf, false, {
 		relative = "editor",
