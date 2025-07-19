@@ -6,6 +6,13 @@ function keybindings.update_key_binding(func, custombind) end
 
 function keybindings.map_keys(buf)
 	vim.api.nvim_buf_set_keymap(buf, "n", "o", ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>', {})
+	vim.api.nvim_buf_set_keymap(
+		buf,
+		"n",
+		"d",
+		':lua require("buffer-me.bufferme").remove_buf_current_selectded_buff()<CR>',
+		{}
+	)
 	vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>', {})
 	vim.api.nvim_buf_set_keymap(
 		buf,

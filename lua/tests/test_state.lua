@@ -30,6 +30,9 @@ function TestState:test_init_required_buffers()
 	vim.api.nvim_create_buf = function()
 		return 1
 	end
+	vim.api.nvim_buf_set_option = function()
+		-- Do nothing as setting the type shouldn't matter here
+	end
 
 	luaunit.assertEquals(state.bufListBuf, nil)
 	luaunit.assertEquals(state.hotswapBuf, nil)

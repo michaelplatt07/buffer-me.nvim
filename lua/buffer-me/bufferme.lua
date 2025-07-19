@@ -102,6 +102,10 @@ function bufferme.remove_buf_at_idx()
 	end
 end
 
+function bufferme.remove_buf_current_selectded_buff()
+	state.remove_buf_by_num(vim.api.nvim_win_get_cursor(0)[1])
+end
+
 function bufferme.go_to_buffer()
 	print("Open buffer at index:")
 	local idx = vim.fn.nr2char(vim.fn.getchar())
