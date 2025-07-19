@@ -21,15 +21,9 @@ function management.create_bindings()
 	vim.api.nvim_create_autocmd("BufLeave", {
 		pattern = "*",
 		callback = function()
-			local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
-			local buffType = vim.api.nvim_buf_get_option(0, "buftype")
-			local shouldIgnore = false
-			for _, bType in ipairs(ignoreTypes) do
-				if buffType == bType then
-					shouldIgnore = true
-					break
-				end
-			end
+			-- Get additional flags to apply for later logic
+			local shouldIgnore, bufferModifiable = get_buff_watch_flags()
+
 			if bufferModifiable and not shouldIgnore then
 				state.lastExitedBuffer = vim.api.nvim_get_current_buf()
 			end
