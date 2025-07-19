@@ -21,10 +21,12 @@ local state = {
 function state.init_required_buffers()
 	if state.bufListBuf == nil then
 		state.bufListBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
 	end
 
 	if state.hotswapBuf == nil then
 		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 	end
 end
 

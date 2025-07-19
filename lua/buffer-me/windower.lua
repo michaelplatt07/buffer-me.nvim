@@ -60,8 +60,10 @@ function windower.close_buffer_me()
 	-- Close the buffers and recreate them
 	vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
 	state.bufListBuf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
 	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
 	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 end
 
 --- Wrapper function around Neovim's line highlight functionality
