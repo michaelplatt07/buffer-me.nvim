@@ -7,19 +7,36 @@ function bufferme.open_most_recent_buffer()
 	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
 end
 
-function bufferme.open_selected_buffer()
-	local selected_buf_handle = nil
+local function getSelectedBufHandle()
 	if state.selectedRow then
 		-- TODO(map) Swap out tracking the buffer list window for the same way the hotswap is being handled in state
 		local win_handle = vim.api.nvim_get_current_win()
 		vim.api.nvim_win_close(win_handle, true)
 		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
-		selected_buf_handle = vim.fn.bufnr(state.bufList[state.selectedRow])
+		return vim.fn.bufnr(state.bufList[state.selectedRow])
 	elseif state.currSelectedBuffer then
-		selected_buf_handle = vim.fn.bufnr(state.bufList[state.currSelectedBuffer])
+		return vim.fn.bufnr(state.bufList[state.currSelectedBuffer])
 	else
 		error("There was problem opening a buffer")
 	end
+end
+
+function bufferme.open_selected_buffer()
+	local selected_buf_handle = getSelectedBufHandle()
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_row()
+end
+
+function bufferme.open_selected_buffer_v_split()
+	local selected_buf_handle = getSelectedBufHandle()
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_row()
+end
+
+function bufferme.open_selected_buffer_h_split()
+	local selected_buf_handle = getSelectedBufHandle()
+	vim.cmd("split")
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_row()
 end
@@ -62,6 +79,7 @@ function bufferme.open_buffers_list()
 	windower.render_buf_list_lines()
 
 	-- Handle an empty selected row for the first time
+	-- TODO(map) Decide whether or not we will keep the state of the selected row upon closing the window or not
 	if state.selectedRow == nil then
 		state.update_selected_row()
 	end
