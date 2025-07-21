@@ -21,15 +21,15 @@ function keybindings.map_keys(buf)
 	vim.api.nvim_buf_set_keymap(buf, "n", "<CR>", ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>', {})
 	vim.api.nvim_buf_set_keymap(
 		buf,
+		"n",
 		"v",
-		"<CR>",
 		':lua require("buffer-me.bufferme").open_selected_buffer_v_split()<CR>',
 		{}
 	)
 	vim.api.nvim_buf_set_keymap(
 		buf,
+		"n",
 		"h",
-		"<CR>",
 		':lua require("buffer-me.bufferme").open_selected_buffer_h_split()<CR>',
 		{}
 	)
