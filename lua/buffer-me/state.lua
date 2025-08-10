@@ -33,6 +33,8 @@ end
 local function shiftAndInsertBuffer(buf_name)
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
+	else
+		state.isBufListFull = false
 	end
 	if buf_name ~= nil and buf_name ~= "" then
 		table.insert(state.bufList, 1, buf_name)
@@ -82,6 +84,8 @@ function state.add_buf_to_num(num, buf)
 	table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
+	else
+		state.isBufListFull = false
 	end
 
 	-- Pop the last item from the list as it shouldn't be there anymore
