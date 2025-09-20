@@ -24,6 +24,11 @@ function M.set_buffer_number()
 	bufferme.add_buf_at_idx()
 end
 
+function M.remove_current_buffer()
+	-- Removes the specified buffer from the list of managed buffers
+	bufferme.remove_buf_current_selectded_buff()
+end
+
 function M.remove_buffer()
 	-- Removes the specified buffer from the list of managed buffers
 	bufferme.remove_buf_at_idx()

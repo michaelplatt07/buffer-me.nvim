@@ -15,11 +15,28 @@ function windower.create_buf_list_window()
 end
 
 function windower.render_buf_list_lines()
+	-- Enable modifications to draw the lines to the buffer
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
+
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
 		table.insert(lines, string.format("%s: %s", idx, value))
 	end
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)
+
+	-- Disable modifications because it's rendered
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
+end
+
+local function clear_buf_list_lines()
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
+	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, -1, false, {})
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
+end
+
+function windower.re_render_buf_list_lines()
+	clear_buf_list_lines()
+	windower.render_buf_list_lines()
 end
 
 function windower.create_hot_swap_window()
@@ -36,6 +53,9 @@ function windower.create_hot_swap_window()
 end
 
 function windower.render_hotswap_lines()
+	-- Enable modifications to draw the lines to the buffer
+	vim.api.nvim_buf_set_option(state.hotswapBuf, "modifiable", true)
+
 	local hotswap_lines = {}
 	local firstHotswapName = nil
 	if state.firstBufHotswap ~= nil then
@@ -48,20 +68,22 @@ function windower.render_hotswap_lines()
 	table.insert(hotswap_lines, string.format("%s: %s", 1, firstHotswapName))
 	table.insert(hotswap_lines, string.format("%s: %s", 2, secondHotswapName))
 	vim.api.nvim_buf_set_lines(state.hotswapBuf, 0, 2, false, hotswap_lines)
+
+	-- Disable modifications because it's rendered
+	vim.api.nvim_buf_set_option(state.hotswapBuf, "modifiable", false)
 end
 
 function windower.close_buffer_me()
 	-- Clean up the state
 	state.clear_selected_row()
 
-	-- Reset modifiable flag so the buffer can be updated on the next search
-	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
-
 	-- Close the buffers and recreate them
 	vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
 	state.bufListBuf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
 	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
 	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 end
 
 --- Wrapper function around Neovim's line highlight functionality

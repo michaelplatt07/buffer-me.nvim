@@ -21,16 +21,20 @@ local state = {
 function state.init_required_buffers()
 	if state.bufListBuf == nil then
 		state.bufListBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
 	end
 
 	if state.hotswapBuf == nil then
 		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 	end
 end
 
 local function shiftAndInsertBuffer(buf_name)
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
+	else
+		state.isBufListFull = false
 	end
 	if buf_name ~= nil and buf_name ~= "" then
 		table.insert(state.bufList, 1, buf_name)
@@ -55,9 +59,10 @@ function state.append_to_buf_list(buf)
 		shiftAndInsertBuffer(buf_name)
 	end
 	--
-	-- Pop the last item from the list as it shouldn't be there anymore
+	-- Pop the last item from the list in the event it was not already part of the list to keep the list length to the
+	-- configured value
 	-- TODO: Clean up might need to be actually removing everything from the max onward.
-	if state.isBufListFull == true then
+	if state.isBufListFull == true and existsInList == false then
 		table.remove(state.bufList, #state.bufList)
 	end
 end
@@ -79,6 +84,8 @@ function state.add_buf_to_num(num, buf)
 	table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
+	else
+		state.isBufListFull = false
 	end
 
 	-- Pop the last item from the list as it shouldn't be there anymore

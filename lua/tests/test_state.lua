@@ -30,6 +30,9 @@ function TestState:test_init_required_buffers()
 	vim.api.nvim_create_buf = function()
 		return 1
 	end
+	vim.api.nvim_buf_set_option = function()
+		-- Do nothing as setting the type shouldn't matter here
+	end
 
 	luaunit.assertEquals(state.bufListBuf, nil)
 	luaunit.assertEquals(state.hotswapBuf, nil)
@@ -166,6 +169,32 @@ function TestState:test_append_full()
 
 	state.append_to_buf_list(0)
 	luaunit.assertEquals(state.bufList[1], "place_holder_11")
+	luaunit.assertEquals(state.bufList[2], "place_holder_1")
+	luaunit.assertEquals(state.bufList[3], "place_holder_2")
+	luaunit.assertEquals(#state.bufList, 10)
+end
+
+function TestState:test_open_already_tracked_buffer()
+	-- The purpose of this is to test to ensure we are not removing from the buffer list if we switch into a new buffer
+	-- that is already in the buffer list leading to a false removal
+	vim.api.nvim_buf_get_name = function()
+		return "place_holder_7"
+	end
+	vim.loop.cwd = function()
+		return "place_holder_7"
+	end
+	vim.pesc = function()
+		return "place_holder_7"
+	end
+
+	state.isBufListFull = true
+	state.recentToTop = true
+	for idx = 1, 10 do
+		state.bufList[idx] = "place_holder_" .. idx
+	end
+
+	state.append_to_buf_list(0)
+	luaunit.assertEquals(state.bufList[1], "place_holder_7")
 	luaunit.assertEquals(state.bufList[2], "place_holder_1")
 	luaunit.assertEquals(state.bufList[3], "place_holder_2")
 	luaunit.assertEquals(#state.bufList, 10)
