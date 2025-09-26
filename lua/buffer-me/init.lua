@@ -95,6 +95,9 @@ function M.setup(config)
 		if config.max_buffer_track ~= nil then
 			state.maxBufferTrack = config.max_buffer_track
 		end
+		if config.debug ~= nil and config.debug == true then
+			state.debug = config.debug
+		end
 	end
 
 	-- Create the bindings on the buffer events
