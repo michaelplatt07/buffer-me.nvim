@@ -2,7 +2,7 @@ local keybindings = {
 	quit = {
 		mode = "n",
 		key = "q",
-		func = ':lua require("buffer-me.windower").close_window()<CR>',
+		func = ':lua require("buffer-me.windower").close_buffer_me()<CR>',
 	},
 	open = { mode = "n", key = "o", func = ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>' },
 	delete = {
