@@ -1,6 +1,4 @@
 #!/bin/bash
-[ -f luacov.report.out ] && rm luacov.report.out
-[ -f luacov.stats.out ] && rm luacov.stats.out
 
 # Get lua version for lua rocks as it may not be the same across systems
 LUA_VERSION_INFO=$(lua -v 2>& 1)
@@ -14,5 +12,4 @@ export PATH="./.luarocks/bin:$PATH"
 export LUA_PATH="./.luarocks/share/lua/$VERSION_FOLDER/?.lua;./.luarocks/share/lua/$VERSION_FOLDER/?/init.lua;./lua/?.lua;$LUA_PATH"
 export LUA_CPATH="./.luarocks/lib/lua/$VERSION_FOLDER/?.so;$LUA_CPATH"
 
-lua -lluacov lua/tests/test_state.lua
-./.luarocks/bin/luacov -c luacov.conf
+nvim --headless -u lua/tests/test_integration.lua -c "lua require('luaunit').LuaUnit.run()"

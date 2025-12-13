@@ -1,10 +1,12 @@
--- Set the path so local installed rocks can be imported
-package.path = ".luarocks/share/lua/5.3/?.lua;" .. package.path
--- Set the path so local modules from the plugin can be imported
-package.path = "./lua/?.lua;" .. package.path
-
 local state
 local luaunit = require("luaunit")
+
+-- Mock Vim so we can mock returns on method bindings
+vim = {
+	api = {},
+	loop = {},
+}
+-- End mocking
 
 require("luacov")
 
@@ -13,12 +15,6 @@ TestState = {}
 -- Setting up and tearing down for each test
 function TestState:setup()
 	state = require("buffer-me.state")
-
-	-- Mock Vim api so we don't run into issues in tests
-	vim = {
-		api = {},
-		loop = {},
-	}
 end
 
 function TestState:teardown()
