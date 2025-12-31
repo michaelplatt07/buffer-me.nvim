@@ -44,7 +44,7 @@ end
 
 function keybindings.map_keys(buf)
 	vim.api.nvim_buf_set_keymap(buf, keybindings.open.mode, keybindings.open.key, keybindings.open.func, {})
-	vim.api.nvim_buf_set_keymap(buf, keybindings.delete.mode, keybindings.delete.mode, keybindings.delete.mode, {})
+	vim.api.nvim_buf_set_keymap(buf, keybindings.delete.mode, keybindings.delete.key, keybindings.delete.func, {})
 	vim.api.nvim_buf_set_keymap(
 		buf,
 		keybindings.open_v_split.mode,
