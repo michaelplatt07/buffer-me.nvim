@@ -9,6 +9,11 @@ function M.open()
 	bufferme.open_buffers_list()
 end
 
+function M.open_search()
+	-- Opens the buffer search bar
+	bufferme.open_search_bar()
+end
+
 function M.add()
 	-- Add the current buffer to the end of the buffer management list
 	bufferme.add_buf()

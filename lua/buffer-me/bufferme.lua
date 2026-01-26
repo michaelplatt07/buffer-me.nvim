@@ -22,9 +22,43 @@ local function getSelectedBufHandle()
 end
 
 function bufferme.open_selected_buffer()
-	local selected_buf_handle = getSelectedBufHandle()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_row()
+end
+
+local function getSelectedSearchResultBufHandle()
+	local win_handle = vim.api.nvim_get_current_win()
+	print("TODO(map) REMOVE ME : Search bar ", win_handle)
+	vim.api.nvim_win_close(win_handle, true)
+	vim.api.nvim_win_close(state.searchResultsWindowHandle, true)
+	-- Reset the handle for the window since it was destroyed.
+	state.searchResultsWindowHandle = nil
+
+	-- TODO(map) This may not be safe but that's tomorrow me's issue
+	return vim.fn.bufnr(state.buff_search_results[state.selected_search_result].item)
+end
+
+function bufferme.open_selected_search_result()
+	-- Exit insert mode safely first
+	print("TODO(map) REMOVE ME : In the open method")
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	-- Clear autocmds
+	vim.api.nvim_clear_autocmds({ buffer = state.bufListSearch })
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	print("TODO(map) REMOVE ME : Selected ", selected_buf_handle)
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+
+	-- Clear the state
+	state.clear_selected_search_result()
+	-- Clear out the buffers as well. Need to do this because unlike the list of buffers, the text isn't being redrawn
+	-- every time the plugin loads up. In the case of the buffer list, we build the content of the buffer each time over
+	-- and over. Maybe not the most efficient right now but it's a small plugin.
+	windower.close_buffer_me_search()
 end
 
 function bufferme.open_selected_buffer_v_split()
@@ -86,6 +120,37 @@ function bufferme.open_buffers_list()
 
 	-- Initialize key bindings
 	keybindings.map_keys(state.bufListBuf)
+end
+
+function bufferme.open_search_bar()
+	-- Initialize the required buffers
+	state.init_required_buffers()
+
+	-- Set the lines for the buffer list
+	windower.create_buff_search_bar()
+
+	-- Set the mode to inserto start typing right away
+	vim.api.nvim_command("startinsert")
+
+	-- Callback for when the user types into the text box.
+	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+		buffer = state.bufListSearch,
+		callback = function()
+			state.search_buffers(
+				vim.api.nvim_buf_get_lines(state.bufListSearch, 0, vim.api.nvim_buf_line_count(0), false)[1]
+			)
+			state.searchResultsWindowHandle = windower.create_buff_search_results_window_if_not_exists()
+			print("TODO(map) REMOVE ME : Opened ", state.searchResultsWindowHandle)
+			windower.re_render_buf_search_results()
+
+			-- Initialize the search result to the first entry
+			state.selected_search_result = 1
+		end,
+	})
+
+	-- Initialize key bindings
+	keybindings.map_search_keys(state.bufListSearch)
+	keybindings.map_search_res_keys(state.bufListSearchResultBuff)
 end
 
 function bufferme.add_buf()
