@@ -29,11 +29,8 @@ end
 
 local function getSelectedSearchResultBufHandle()
 	local win_handle = vim.api.nvim_get_current_win()
-	print("TODO(map) REMOVE ME : Search bar ", win_handle)
 	vim.api.nvim_win_close(win_handle, true)
 	vim.api.nvim_win_close(state.searchResultsWindowHandle, true)
-	-- Reset the handle for the window since it was destroyed.
-	state.searchResultsWindowHandle = nil
 
 	-- TODO(map) This may not be safe but that's tomorrow me's issue
 	return vim.fn.bufnr(state.buff_search_results[state.selected_search_result].item)
@@ -41,7 +38,6 @@ end
 
 function bufferme.open_selected_search_result()
 	-- Exit insert mode safely first
-	print("TODO(map) REMOVE ME : In the open method")
 	if vim.fn.mode() == "i" then
 		vim.cmd("stopinsert")
 	end
@@ -50,7 +46,6 @@ function bufferme.open_selected_search_result()
 	vim.api.nvim_clear_autocmds({ buffer = state.bufListSearch })
 
 	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	print("TODO(map) REMOVE ME : Selected ", selected_buf_handle)
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 
 	-- Clear the state
@@ -140,11 +135,11 @@ function bufferme.open_search_bar()
 				vim.api.nvim_buf_get_lines(state.bufListSearch, 0, vim.api.nvim_buf_line_count(0), false)[1]
 			)
 			state.searchResultsWindowHandle = windower.create_buff_search_results_window_if_not_exists()
-			print("TODO(map) REMOVE ME : Opened ", state.searchResultsWindowHandle)
-			windower.re_render_buf_search_results()
 
 			-- Initialize the search result to the first entry
 			state.selected_search_result = 1
+
+			windower.re_render_buf_search_results()
 		end,
 	})
 

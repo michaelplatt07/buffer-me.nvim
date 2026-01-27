@@ -98,6 +98,9 @@ function windower.close_buffer_me_search()
 	-- Reset the search results
 	state.buff_search_results = {}
 
+	-- Remove the reference to the old results window since it is going to be destroyed
+	state.searchResultsWindowHandle = nil
+
 	-- Close the buffers and recreate them
 	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
 	state.bufListSearch = vim.api.nvim_create_buf(false, true)
@@ -157,7 +160,7 @@ function windower.render_buf_search_results()
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
 
 	local lines = {}
-	for idx, value in pairs(state.buff_search_results) do
+	for _, value in pairs(state.buff_search_results) do
 		table.insert(lines, string.format("%s", value.item))
 	end
 	vim.api.nvim_buf_set_lines(state.bufListSearchResultBuff, 0, #lines, false, lines)
@@ -175,6 +178,9 @@ end
 function windower.re_render_buf_search_results()
 	clear_buf_search_results()
 	windower.render_buf_search_results()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
 end
 
 return windower
