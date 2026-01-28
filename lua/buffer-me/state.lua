@@ -8,6 +8,11 @@ local state = {
 	bufListBuf = nil,
 	hotswapBuf = nil,
 	hotswapWindowHandle = nil,
+	bufListSearch = nil,
+	bufListSearchResultBuff = nil,
+	searchResultsWindowHandle = nil,
+	buff_search_results = {},
+	selected_search_result = nil,
 	bufList = {},
 	maxBufferTrack = 10, -- Default to 10 but this can be set in configs
 	selectedRow = nil,
@@ -16,6 +21,7 @@ local state = {
 	secondBufHotswap = nil,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
+	is_ui_active = false,
 }
 
 function state.init_required_buffers()
@@ -28,6 +34,24 @@ function state.init_required_buffers()
 		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 	end
+
+	if state.bufListSearch == nil then
+		state.bufListSearch = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.bufListSearch, "buftype", "prompt")
+		vim.fn.prompt_setprompt(state.bufListSearch, "> ")
+	end
+
+	if state.bufListSearchResultBuff == nil then
+		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "buftype", "nofile")
+	end
+end
+
+function state.clean_up_buffers_on_close()
+	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
+	state.bufListSearch = nil
+	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
+	state.bufListSearchResultBuff = nil
 end
 
 local function shiftAndInsertBuffer(buf_name)
@@ -79,9 +103,10 @@ function state.check_for_dup_buf(buf_name)
 	return is_dup, dup_loc
 end
 
+-- TODO(map) Consider removing this. I don't think it makes much sense to just add a buffer to a random number
 function state.add_buf_to_num(num, buf)
 	local converted_num = tonumber(num)
-	table.insert(state.bufList, converted_num, vim.api.nvim_buf_get_name(buf))
+	state.bufList[converted_num] = vim.api.nvim_buf_get_name(buf)
 	if #state.bufList + 1 >= state.maxBufferTrack then
 		state.isBufListFull = true
 	else
@@ -97,9 +122,14 @@ end
 
 function state.remove_buf_by_num(num)
 	local converted_num = tonumber(num)
-	table.remove(state.bufList, converted_num)
-	state.isBufListFull = false
+
+	-- Only remove if we can
+	if converted_num < #state.bufList then
+		table.remove(state.bufList, converted_num)
+		state.isBufListFull = false
+	end
 end
+--TODO(map) Consider removing end
 
 function state.go_next_buffer()
 	-- Case where we don't have a currently selected buffer, start from beginning of all buffers and set that as the
@@ -197,13 +227,105 @@ function state.update_selected_row()
 	state.selectedRow = vim.api.nvim_win_get_cursor(0)[1]
 end
 
+function state.move_up_selected_search_result()
+	if state.selected_search_result - 1 <= 0 then
+		state.selected_search_result = 1
+	else
+		state.selected_search_result = state.selected_search_result - 1
+	end
+end
+
+function state.move_down_selected_search_result()
+	if state.selected_search_result + 1 >= #state.buff_search_results then
+		state.selected_search_result = #state.buff_search_results
+	else
+		state.selected_search_result = state.selected_search_result + 1
+	end
+end
+
 function state.clear_selected_row()
 	state.selectedRow = nil
+end
+
+function state.clear_selected_search_result()
+	state.selected_search_result = nil
 end
 
 function state.clear_state()
 	state.bufList = {}
 	state.selectedRow = nil
+end
+
+local function fuzzy_path_score(query, path)
+	query = query:lower()
+	path = path:lower()
+
+	local last = path:match("([^/]+)$") or path
+	local score = 0
+
+	-- Rule 1: exact substring in last segment
+	if last:find(query, 1, true) then
+		score = score + 1
+	end
+
+	-- Rule 2: fuzzy match in last segment
+	do
+		local pos = 0
+		local ok = true
+		for c in query:gmatch(".") do
+			local s, e = last:find(c, pos + 1, true)
+			if not s then
+				ok = false
+				break
+			end
+			pos = e
+		end
+		if ok then
+			score = score + 1
+		end
+	end
+
+	-- Rule 3: fuzzy match anywhere
+	do
+		local pos = 0
+		local ok = true
+		for c in query:gmatch(".") do
+			local s, e = path:find(c, pos + 1, true)
+			if not s then
+				ok = false
+				break
+			end
+			pos = e
+		end
+		if ok then
+			score = score + 1
+		end
+	end
+
+	return score
+end
+
+local function fuzzy_substr(query, items)
+	local results = {}
+	query = query:lower()
+	for _, item in ipairs(items) do
+		local score = fuzzy_path_score(query, item)
+		if score > 0 then
+			table.insert(results, { item = item, score = score })
+		end
+	end
+
+	if #results > 0 then
+		table.sort(results, function(a, b)
+			return a.score > b.score
+		end)
+	end
+
+	return results
+end
+
+function state.search_buffers(buf_search_term)
+	state.buff_search_results = fuzzy_substr(buf_search_term, state.bufList)
 end
 
 return state
