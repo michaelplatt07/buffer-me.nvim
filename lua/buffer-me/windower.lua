@@ -1,6 +1,9 @@
 local state = require("buffer-me.state")
 local windower = {}
 
+-- Local hl group so it can be referenced across the board
+local ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
+
 local function get_window_dimensions()
 	return vim.api.nvim_list_uis()[1]
 end
@@ -101,26 +104,21 @@ function windower.close_buffer_me_search()
 	-- Remove the reference to the old results window since it is going to be destroyed
 	state.searchResultsWindowHandle = nil
 
-	-- Close the buffers and recreate them
-	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
-	state.bufListSearch = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(state.bufListSearch, "buftype", "nofile")
-	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
-	state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "buftype", "nofile")
+	-- Close the buffers
+	state.clean_up_buffers_on_close()
 end
 
 --- Wrapper function around Neovim's line highlight functionality
 --- @param line_num number The 1-indexed value of the line number
 function windower.highlight_current_mark(buf, line_num)
 	-- Subtract one from the line_num value because lua is 1 indexed
-	vim.api.nvim_buf_add_highlight(buf, -1, "CursorLine", line_num - 1, 0, -1)
+	vim.api.nvim_buf_add_highlight(buf, ns_search_cursor, "CursorLine", line_num - 1, 0, -1)
 end
 
 --- Wrapper function around Neovim's line highlight removal functionality
 --- @param line_num number The 1-indexed value of the line number
 function windower.remove_highlight(buf, line_num)
-	vim.api.nvim_buf_clear_namespace(buf, -1, line_num - 1, -1)
+	vim.api.nvim_buf_clear_namespace(buf, ns_search_cursor, line_num - 1, -1)
 end
 
 function windower.create_buff_search_bar()

@@ -21,6 +21,7 @@ local state = {
 	secondBufHotswap = nil,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
+	is_ui_active = false,
 }
 
 function state.init_required_buffers()
@@ -36,13 +37,21 @@ function state.init_required_buffers()
 
 	if state.bufListSearch == nil then
 		state.bufListSearch = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_option(state.bufListSearch, "buftype", "nofile")
+		vim.api.nvim_buf_set_option(state.bufListSearch, "buftype", "prompt")
+		vim.fn.prompt_setprompt(state.bufListSearch, "> ")
 	end
 
 	if state.bufListSearchResultBuff == nil then
 		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "buftype", "nofile")
 	end
+end
+
+function state.clean_up_buffers_on_close()
+	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
+	state.bufListSearch = nil
+	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
+	state.bufListSearchResultBuff = nil
 end
 
 local function shiftAndInsertBuffer(buf_name)
@@ -301,16 +310,6 @@ local function fuzzy_substr(query, items)
 	query = query:lower()
 	for _, item in ipairs(items) do
 		local score = fuzzy_path_score(query, item)
-		-- local last_pos = 0
-		-- for c in query:gmatch(".") do
-		-- 	local s, e = item:lower():find(c, last_pos + 1, true)
-		-- 	if s then
-		-- 		score = score + 1
-		-- 		last_pos = e
-		-- 	else
-		-- 		break
-		-- 	end
-		-- end
 		if score > 0 then
 			table.insert(results, { item = item, score = score })
 		end

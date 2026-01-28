@@ -36,13 +36,11 @@ local keybindings = {
 local searchKeybindings = {
 	move_up = {
 		mode = "i",
-		key = "<C-n>",
-		func = ':lua require("buffer-me.state").move_up_selected_search_result()<CR>',
+		key = "<C-p>",
 	},
 	move_down = {
 		mode = "i",
-		key = "<C-p>",
-		func = ':lua require("buffer-me.state").move_down_selected_search_result()<CR>',
+		key = "<C-n>",
 	},
 	open = {
 		mode = "i",
@@ -51,17 +49,14 @@ local searchKeybindings = {
 	open_v_split = {
 		mode = "i",
 		key = "<C-v>",
-		func = "",
 	},
 	open_h_split = {
 		mode = "i",
 		key = "<C-h>",
-		func = "",
 	},
 	close = {
 		mode = "n",
 		key = "q",
-		func = ':lua require("buffer-me.windower").close_buffer_me_search()<CR>',
 	},
 }
 
@@ -110,63 +105,46 @@ function keybindings.map_keys(buf)
 end
 
 function keybindings.map_search_keys(buf)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.move_up.mode,
-		searchKeybindings.move_up.key,
-		searchKeybindings.move_up.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.move_down.mode,
-		searchKeybindings.move_down.key,
-		searchKeybindings.move_down.func,
-		{}
-	)
+	vim.keymap.set(searchKeybindings.move_up.mode, searchKeybindings.move_up.key, function()
+		vim.schedule(function()
+			require("buffer-me.bufferme").move_search_selection_up()
+		end)
+	end, {
+		buffer = buf,
+		expr = true,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchKeybindings.move_down.mode, searchKeybindings.move_down.key, function()
+		vim.schedule(function()
+			require("buffer-me.bufferme").move_search_selection_down()
+		end)
+	end, {
+		buffer = buf,
+		expr = true,
+		noremap = true,
+		silent = true,
+	})
 	vim.keymap.set(searchKeybindings.open.mode, searchKeybindings.open.key, function()
 		require("buffer-me.bufferme").open_selected_search_result()
 	end, { buffer = buf })
-	-- vim.api.nvim_buf_set_keymap(
-	-- 	buf,
-	-- 	searchKeybindings.open.mode,
-	-- 	searchKeybindings.open.key,
-	-- 	searchKeybindings.open.func,
-	-- 	{}
-	-- )
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.open_v_split.mode,
-		searchKeybindings.open_v_split.key,
-		searchKeybindings.open_v_split.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.open_h_split.mode,
-		searchKeybindings.open_h_split.key,
-		searchKeybindings.open_h_split.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.close.mode,
-		searchKeybindings.close.key,
-		searchKeybindings.close.func,
-		{}
-	)
+	vim.keymap.set(searchKeybindings.open_v_split.mode, searchKeybindings.open_v_split.key, function()
+		-- require("buffer-me.bufferme").open_selected_buffer_v_split()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.open_h_split.mode, searchKeybindings.open_h_split.key, function()
+		-- require("buffer-me.bufferme").open_selected_buffer_h_split()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
+		require("buffer-me.bufferme").close_buffer_me_search()
+	end, { buffer = buf })
 end
 
 function keybindings.map_search_res_keys(buf)
 	-- This is a safety that lets the user close the search if they accidentally click into the search result window. It
 	-- will just close everything up the same as if they hit close in the search bar
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		searchKeybindings.close.mode,
-		searchKeybindings.close.key,
-		searchKeybindings.close.func,
-		{}
-	)
+	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
+		require("buffer-me.bufferme").close_buffer_me_search()
+	end, { buffer = buf })
 end
 
 return keybindings

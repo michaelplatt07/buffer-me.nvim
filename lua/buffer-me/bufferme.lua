@@ -118,34 +118,57 @@ function bufferme.open_buffers_list()
 end
 
 function bufferme.open_search_bar()
+	-- Set the state being open so we know the user is searching
+	state.is_ui_active = true
+
 	-- Initialize the required buffers
 	state.init_required_buffers()
 
 	-- Set the lines for the buffer list
 	windower.create_buff_search_bar()
 
-	-- Set the mode to inserto start typing right away
-	vim.api.nvim_command("startinsert")
+	-- Initialize the search result to the first entry
+	state.selected_search_result = 1
 
-	-- Callback for when the user types into the text box.
-	vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-		buffer = state.bufListSearch,
-		callback = function()
-			state.search_buffers(
-				vim.api.nvim_buf_get_lines(state.bufListSearch, 0, vim.api.nvim_buf_line_count(0), false)[1]
-			)
-			state.searchResultsWindowHandle = windower.create_buff_search_results_window_if_not_exists()
-
-			-- Initialize the search result to the first entry
-			state.selected_search_result = 1
-
-			windower.re_render_buf_search_results()
+	vim.api.nvim_buf_attach(state.bufListSearch, false, {
+		on_lines = function(_, _, _, firstline, _, linedata)
+			local input = vim.api.nvim_buf_get_lines(state.bufListSearch, firstline, linedata, {})[1]
+			print("Got input: ", input)
+			vim.schedule(function()
+				local search_term, _ = string.gsub(input, "> ", "")
+				state.search_buffers(search_term)
+				state.searchResultsWindowHandle = windower.create_buff_search_results_window_if_not_exists()
+				windower.re_render_buf_search_results()
+			end)
 		end,
 	})
+
+	-- Set the mode to inserto start typing right away
+	vim.api.nvim_set_current_buf(state.bufListSearch)
+	vim.api.nvim_command("startinsert")
 
 	-- Initialize key bindings
 	keybindings.map_search_keys(state.bufListSearch)
 	keybindings.map_search_res_keys(state.bufListSearchResultBuff)
+end
+
+function bufferme.move_search_selection_up()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+
+	state.move_up_selected_search_result()
+	windower.re_render_buf_search_results()
+end
+
+function bufferme.move_search_selection_down()
+	print("TODO(map) REMOVE ME ")
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+
+	state.move_down_selected_search_result()
+	windower.re_render_buf_search_results()
 end
 
 function bufferme.add_buf()
@@ -279,6 +302,13 @@ function bufferme.open_second_hotswap()
 		-- If there is a first hotswap open it
 		vim.api.nvim_set_current_buf(state.secondBufHotswap)
 	end
+end
+
+function bufferme.close_buffer_me_search()
+	-- Set the state being closed
+	state.is_ui_active = false
+
+	windower.close_buffer_me_search()
 end
 
 return bufferme
