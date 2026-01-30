@@ -42,9 +42,6 @@ function bufferme.open_selected_search_result()
 		vim.cmd("stopinsert")
 	end
 
-	-- Clear autocmds
-	vim.api.nvim_clear_autocmds({ buffer = state.bufListSearch })
-
 	local selected_buf_handle = getSelectedSearchResultBufHandle()
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 
@@ -118,9 +115,6 @@ function bufferme.open_buffers_list()
 end
 
 function bufferme.open_search_bar()
-	-- Set the state being open so we know the user is searching
-	state.is_ui_active = true
-
 	-- Initialize the required buffers
 	state.init_required_buffers()
 
@@ -133,7 +127,6 @@ function bufferme.open_search_bar()
 	vim.api.nvim_buf_attach(state.bufListSearch, false, {
 		on_lines = function(_, _, _, firstline, _, linedata)
 			local input = vim.api.nvim_buf_get_lines(state.bufListSearch, firstline, linedata, {})[1]
-			print("Got input: ", input)
 			vim.schedule(function()
 				local search_term, _ = string.gsub(input, "> ", "")
 				state.search_buffers(search_term)
@@ -162,7 +155,6 @@ function bufferme.move_search_selection_up()
 end
 
 function bufferme.move_search_selection_down()
-	print("TODO(map) REMOVE ME ")
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
 	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
@@ -305,9 +297,6 @@ function bufferme.open_second_hotswap()
 end
 
 function bufferme.close_buffer_me_search()
-	-- Set the state being closed
-	state.is_ui_active = false
-
 	windower.close_buffer_me_search()
 end
 

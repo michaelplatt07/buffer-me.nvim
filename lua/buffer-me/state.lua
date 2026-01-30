@@ -21,7 +21,6 @@ local state = {
 	secondBufHotswap = nil,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
-	is_ui_active = false,
 }
 
 function state.init_required_buffers()

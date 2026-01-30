@@ -53,8 +53,6 @@ function windower.create_hot_swap_window()
 		relative = "editor",
 		row = math.floor((windowInfo.height - 26) / 2),
 		col = math.floor((windowInfo.width - 100) / 2),
-		-- row = 0,
-		-- col = 0,
 		width = 100,
 		height = 2,
 		border = "double",
