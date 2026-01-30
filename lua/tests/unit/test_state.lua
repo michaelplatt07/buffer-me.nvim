@@ -5,6 +5,7 @@ local luaunit = require("luaunit")
 vim = {
 	api = {},
 	loop = {},
+	fn = {},
 }
 -- End mocking
 
@@ -27,6 +28,9 @@ function TestState:test_init_required_buffers()
 	end
 	vim.api.nvim_buf_set_option = function()
 		-- Do nothing as setting the type shouldn't matter here
+	end
+	vim.fn.prompt_setprompt = function()
+		-- Do nothing as testing this isn't required. It's a vim API
 	end
 
 	luaunit.assertEquals(state.bufListBuf, nil)
