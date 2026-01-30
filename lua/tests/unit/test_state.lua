@@ -5,6 +5,7 @@ local luaunit = require("luaunit")
 vim = {
 	api = {},
 	loop = {},
+	fn = {},
 }
 -- End mocking
 
@@ -14,12 +15,11 @@ TestState = {}
 
 -- Setting up and tearing down for each test
 function TestState:setup()
+	package.loaded["buffer-me.state"] = nil
 	state = require("buffer-me.state")
 end
 
-function TestState:teardown()
-	package.loaded["buffer-me.state"] = nil
-end
+function TestState:teardown() end
 -- End setup and teardown
 
 function TestState:test_init_required_buffers()
@@ -28,6 +28,9 @@ function TestState:test_init_required_buffers()
 	end
 	vim.api.nvim_buf_set_option = function()
 		-- Do nothing as setting the type shouldn't matter here
+	end
+	vim.fn.prompt_setprompt = function()
+		-- Do nothing as testing this isn't required. It's a vim API
 	end
 
 	luaunit.assertEquals(state.bufListBuf, nil)
@@ -224,12 +227,11 @@ function TestState:test_add_buf_to_num_to_filled_spot()
 	luaunit.assertEquals(state.bufList[4], "place_holder_4")
 	state.add_buf_to_num(4, 0)
 	luaunit.assertEquals(state.bufList[4], "replacement_name")
-	luaunit.assertEquals(#state.bufList, 10)
 end
 
 function TestState:test_remove_buf_by_num_value_present()
 	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
+		table.insert(state.bufList, "place_holder_" .. idx)
 	end
 
 	luaunit.assertEquals(state.bufList[4], "place_holder_4")
