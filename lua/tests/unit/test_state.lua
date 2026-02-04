@@ -1,6 +1,3 @@
-local state
-local luaunit = require("luaunit")
-
 -- Mock Vim so we can mock returns on method bindings
 vim = {
 	api = {},
@@ -10,6 +7,9 @@ vim = {
 -- End mocking
 
 require("luacov")
+
+local state
+local luaunit = require("luaunit")
 
 TestState = {}
 

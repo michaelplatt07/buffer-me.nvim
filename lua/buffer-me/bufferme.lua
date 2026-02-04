@@ -28,6 +28,8 @@ function bufferme.open_selected_buffer()
 end
 
 local function getSelectedSearchResultBufHandle()
+	-- TODO(map) Move the closing of the windows to the windower itself. This method should only return the currently
+	-- selected buffer.
 	local win_handle = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_close(win_handle, true)
 	vim.api.nvim_win_close(state.searchResultsWindowHandle, true)

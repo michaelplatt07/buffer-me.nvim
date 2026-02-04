@@ -1,11 +1,21 @@
 local state = require("buffer-me.state")
 local windower = {}
 
--- Local hl group so it can be referenced across the board
-local ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
+-- The highlight group needs to be global in the tool so it can be used anywhere
+windower.ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
 
 local function get_window_dimensions()
-	return vim.api.nvim_list_uis()[1]
+	-- Gets the UI which should always actually be available. The else block is strictly for handling integrations as
+	-- they are being ran through the --headless switch.
+	local uis = vim.api.nvim_list_uis()
+	if uis and uis[1] then
+		return uis[1]
+	else
+		return {
+			height = 100,
+			width = 100,
+		}
+	end
 end
 
 function windower.create_buf_list_window()
@@ -110,13 +120,17 @@ end
 --- @param line_num number The 1-indexed value of the line number
 function windower.highlight_current_mark(buf, line_num)
 	-- Subtract one from the line_num value because lua is 1 indexed
-	vim.api.nvim_buf_add_highlight(buf, ns_search_cursor, "CursorLine", line_num - 1, 0, -1)
+	local line = vim.api.nvim_buf_get_lines(buf, line_num - 1, line_num, false)[1]
+	vim.api.nvim_buf_set_extmark(buf, windower.ns_search_cursor, line_num - 1, 0, {
+		hl_group = "CursorLine",
+		end_col = #line,
+	})
 end
 
 --- Wrapper function around Neovim's line highlight removal functionality
 --- @param line_num number The 1-indexed value of the line number
 function windower.remove_highlight(buf, line_num)
-	vim.api.nvim_buf_clear_namespace(buf, ns_search_cursor, line_num - 1, -1)
+	vim.api.nvim_buf_clear_namespace(buf, windower.ns_search_cursor, line_num - 1, -1)
 end
 
 function windower.create_buff_search_bar()
