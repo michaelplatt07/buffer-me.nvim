@@ -17,5 +17,5 @@ export LUA_CPATH="./.luarocks/lib/lua/$VERSION_FOLDER/?.so;$LUA_CPATH"
 ./test_unit.sh
 ./test_integration.sh
 
-./.luarocks/bin/luacov -c luacov.conf
+./.luarocks/bin/luacov -c .luacov
 

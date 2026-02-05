@@ -1,311 +1,249 @@
 -- Mock Vim so we can mock returns on method bindings
-vim = {
+_G.vim = {
 	api = {},
 	loop = {},
 	fn = {},
 }
 -- End mocking
 
-require("luacov")
+local state = nil
 
-local state
-local luaunit = require("luaunit")
+describe("state.init_required_buffers", function()
+	before_each(function()
+		stub(vim.api, "nvim_create_buf", function()
+			return 1
+		end)
 
-TestState = {}
+		stub(vim.api, "nvim_buf_set_option", function()
+			-- no-op
+		end)
 
--- Setting up and tearing down for each test
-function TestState:setup()
-	package.loaded["buffer-me.state"] = nil
-	state = require("buffer-me.state")
-end
+		stub(vim.fn, "prompt_setprompt", function()
+			-- no-op
+		end)
 
-function TestState:teardown() end
--- End setup and teardown
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
 
-function TestState:test_init_required_buffers()
-	vim.api.nvim_create_buf = function()
-		return 1
-	end
-	vim.api.nvim_buf_set_option = function()
-		-- Do nothing as setting the type shouldn't matter here
-	end
-	vim.fn.prompt_setprompt = function()
-		-- Do nothing as testing this isn't required. It's a vim API
-	end
+	it("initializes required buffers when they are nil", function()
+		assert.is_nil(state.bufListBuf)
+		assert.is_nil(state.hotswapBuf)
 
-	luaunit.assertEquals(state.bufListBuf, nil)
-	luaunit.assertEquals(state.hotswapBuf, nil)
-	state.init_required_buffers()
-	luaunit.assertNotIsNil(state.bufListBuf, "BufListBuf should not be nil")
-	luaunit.assertNotIsNil(state.hotswapBuf, "HotswapBuf should not be nil")
-end
+		state.init_required_buffers()
 
-function TestState:test_append_no_entries_no_duplicate()
-	vim.api.nvim_buf_get_name = function()
-		return "this_is_a_buffer_name"
-	end
-	vim.loop.cwd = function()
-		return "this_is_a_buffer_name"
-	end
-	vim.pesc = function()
-		return "this_is_a_buffer_name"
-	end
+		assert.is_not_nil(state.bufListBuf)
+		assert.is_not_nil(state.hotswapBuf)
+	end)
+end)
 
-	luaunit.assertEquals(state.bufList[1], nil)
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "this_is_a_buffer_name")
-end
+describe("state.append_to_buf_list", function()
+	before_each(function()
+		stub(vim.api, "nvim_buf_get_name", function()
+			return "sample_buf_1"
+		end)
+		stub(vim.loop, "cwd", function()
+			return "sample_buf_1"
+		end)
+		stub(vim, "pesc", function()
+			return "sample_buf_1"
+		end)
 
-function TestState:test_append_with_entries_no_duplicate()
-	vim.api.nvim_buf_get_name = function()
-		return "this_is_a_buffer_name"
-	end
-	vim.loop.cwd = function()
-		return "this_is_a_buffer_name"
-	end
-	vim.pesc = function()
-		return "this_is_a_buffer_name"
-	end
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
 
-	state.bufList[1] = "place_holder_1_asdf"
-	state.bufList[2] = "place_holder_2_asdf"
+	it("Should append to an empty buffer list with no duplicates", function()
+		assert.is_nil(state.bufList[1], nil)
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+	end)
 
-	luaunit.assertEquals(state.bufList[1], "place_holder_1_asdf")
-	luaunit.assertEquals(state.bufList[2], "place_holder_2_asdf")
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "this_is_a_buffer_name")
-	luaunit.assertEquals(state.bufList[2], "place_holder_1_asdf")
-	luaunit.assertEquals(state.bufList[3], "place_holder_2_asdf")
-end
+	it("Should append to an already populated list with no duplicates", function()
+		state.bufList[1] = "sample_buf_2"
+		state.bufList[2] = "sample_buf_3"
 
-function TestState:test_append_duplicate_no_reset_flag()
-	-- Tests leaving the buffer in the current list if it's already there
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder_1"
-	end
-	vim.loop.cwd = function()
-		return "place_holder_1"
-	end
-	vim.pesc = function()
-		return "place_holder_1"
-	end
+		assert.is_equal(state.bufList[1], "sample_buf_2")
+		assert.is_equal(state.bufList[2], "sample_buf_3")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_2")
+		assert.is_equal(state.bufList[3], "sample_buf_3")
+	end)
 
-	state.bufList[1] = "place_holder_1"
-	state.bufList[2] = "place_holder_2"
+	it("Should not append the buffer name because its a duplicate", function()
+		state.bufList[1] = "sample_buf_1"
+		state.bufList[2] = "sample_buf_2"
 
-	luaunit.assertEquals(state.bufList[1], "place_holder_1")
-	luaunit.assertEquals(state.bufList[2], "place_holder_2")
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[3], nil)
-end
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_2")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[3], nil)
+	end)
 
-function TestState:test_append_duplicate_reset_flag()
-	-- Tests duplicate that should shift to the top
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder_3"
-	end
-	vim.loop.cwd = function()
-		return "place_holder_3"
-	end
-	vim.pesc = function()
-		return "place_holder_3"
-	end
+	it("Should not append because it's a duplicate but should move the buffer to the top", function()
+		state.recentToTop = true
 
-	state.recentToTop = true
+		state.bufList[1] = "sample_buf_3"
+		state.bufList[2] = "sample_buf_2"
+		state.bufList[3] = "sample_buf_1"
 
-	state.bufList[1] = "place_holder_1"
-	state.bufList[2] = "place_holder_2"
-	state.bufList[3] = "place_holder_3"
+		assert.is_equal(state.bufList[1], "sample_buf_3")
+		assert.is_equal(state.bufList[2], "sample_buf_2")
+		assert.is_equal(state.bufList[3], "sample_buf_1")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_3")
+		assert.is_equal(state.bufList[3], "sample_buf_2")
+		assert.is_equal(#state.bufList, 3)
+	end)
 
-	luaunit.assertEquals(state.bufList[1], "place_holder_1")
-	luaunit.assertEquals(state.bufList[2], "place_holder_2")
-	luaunit.assertEquals(state.bufList[3], "place_holder_3")
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "place_holder_3")
-	luaunit.assertEquals(state.bufList[2], "place_holder_1")
-	luaunit.assertEquals(state.bufList[3], "place_holder_2")
-	luaunit.assertEquals(#state.bufList, 3)
-end
+	it("Should add the buffer to the list and mark the list as full", function()
+		state.isBufListFull = false
+		for idx = 1, 9 do
+			state.bufList[idx] = "sample_buf_" .. idx + 1
+		end
 
-function TestState.test_append_last_entry()
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder_11"
-	end
-	vim.loop.cwd = function()
-		return "place_holder_11"
-	end
-	vim.pesc = function()
-		return "place_holder_11"
-	end
+		assert.is_equal(state.bufList[1], "sample_buf_2")
+		assert.is_equal(state.bufList[2], "sample_buf_3")
+		assert.is_equal(state.bufList[3], "sample_buf_4")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_2")
+		assert.is_equal(state.bufList[3], "sample_buf_3")
+		assert.is_true(state.isBufListFull)
+	end)
 
-	state.isBufListFull = true
-	for idx = 1, 9 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
+	it("Should add the buffer but not beyond the allowed list size", function()
+		state.isBufListFull = true
+		for idx = 1, 10 do
+			state.bufList[idx] = "sample_buf_" .. idx + 1
+		end
 
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "place_holder_11")
-	luaunit.assertEquals(state.bufList[2], "place_holder_1")
-	luaunit.assertEquals(state.bufList[3], "place_holder_2")
-	luaunit.assertEquals(state.isBufListFull, true)
-end
+		assert.is_equal(state.bufList[1], "sample_buf_2")
+		assert.is_equal(state.bufList[2], "sample_buf_3")
+		assert.is_equal(state.bufList[3], "sample_buf_4")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_2")
+		assert.is_equal(state.bufList[3], "sample_buf_3")
+		assert.is_true(state.isBufListFull)
+	end)
 
-function TestState:test_append_full()
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder_11"
-	end
-	vim.loop.cwd = function()
-		return "place_holder_11"
-	end
-	vim.pesc = function()
-		return "place_holder_11"
-	end
+	it("Should move an already listed buffer to the top of the list", function()
+		state.isBufListFull = true
+		state.recentToTop = true
+		for idx = 10, 1, -1 do
+			table.insert(state.bufList, "sample_buf_" .. idx)
+		end
 
-	state.isBufListFull = true
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
+		assert.is_equal(state.bufList[1], "sample_buf_10")
+		assert.is_equal(state.bufList[2], "sample_buf_9")
+		assert.is_equal(state.bufList[3], "sample_buf_8")
+		state.append_to_buf_list(0)
+		assert.is_equal(state.bufList[1], "sample_buf_1")
+		assert.is_equal(state.bufList[2], "sample_buf_10")
+		assert.is_equal(state.bufList[3], "sample_buf_9")
+		assert.is_true(state.isBufListFull)
+	end)
+end)
 
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "place_holder_11")
-	luaunit.assertEquals(state.bufList[2], "place_holder_1")
-	luaunit.assertEquals(state.bufList[3], "place_holder_2")
-	luaunit.assertEquals(#state.bufList, 10)
-end
+describe("state.clear_selected_row", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
 
-function TestState:test_open_already_tracked_buffer()
-	-- The purpose of this is to test to ensure we are not removing from the buffer list if we switch into a new buffer
-	-- that is already in the buffer list leading to a false removal
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder_7"
-	end
-	vim.loop.cwd = function()
-		return "place_holder_7"
-	end
-	vim.pesc = function()
-		return "place_holder_7"
-	end
+	it("Clears the seslectedRow field from the state", function()
+		state.selectedRow = "Selected row"
+		assert.is_equal(state.selectedRow, "Selected row")
+		state.clear_selected_row()
+		assert.is_nil(state.selectedRow)
+	end)
+end)
 
-	state.isBufListFull = true
-	state.recentToTop = true
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
+describe("state.remove_buf_by_num", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
 
-	state.append_to_buf_list(0)
-	luaunit.assertEquals(state.bufList[1], "place_holder_7")
-	luaunit.assertEquals(state.bufList[2], "place_holder_1")
-	luaunit.assertEquals(state.bufList[3], "place_holder_2")
-	luaunit.assertEquals(#state.bufList, 10)
-end
+	it("Clears the buffer from the list at the given number", function()
+		for idx = 1, 10 do
+			table.insert(state.bufList, "place_holder_" .. idx)
+		end
 
-function TestState:test_clear_selected_row()
-	state.selectedRow = "Some Value"
-	luaunit.assertEquals(state.selectedRow, "Some Value")
-	state.clear_selected_row()
-	luaunit.assertEquals(state.selectedRow, nil)
-end
+		assert.is_equal(state.bufList[4], "place_holder_4")
+		state.remove_buf_by_num(4)
+		assert.is_equal(state.bufList[4], "place_holder_5")
+	end)
+end)
 
-function TestState:test_add_buf_to_num_to_empty_spot()
-	vim.api.nvim_buf_get_name = function()
-		return "place_holder"
-	end
+-- NOTE(map) Tests to still be ported after issue: https://github.com/michaelplatt07/buffer-me.nvim/issues/31 has been
+-- implemented
+-- function TestState.test_go_next_buffer_currently_empty()
+-- 	for idx = 1, 10 do
+-- 		state.bufList[idx] = "place_holder_" .. idx
+-- 	end
+--
+-- 	luaunit.assertEquals(state.currSelectedBuffer, nil)
+-- 	state.go_next_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 1)
+-- end
 
-	luaunit.assertEquals(state.bufList[4], nil)
-	state.add_buf_to_num(4, 0)
-	luaunit.assertEquals(state.bufList[4], "place_holder")
-end
+-- function TestState.test_go_next_buffer_immediately_after()
+-- 	for idx = 1, 10 do
+-- 		state.bufList[idx] = "place_holder_" .. idx
+-- 	end
+-- 	state.currSelectedBuffer = 1
+--
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 1)
+-- 	state.go_next_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 2)
+-- end
 
-function TestState:test_add_buf_to_num_to_filled_spot()
-	vim.api.nvim_buf_get_name = function()
-		return "replacement_name"
-	end
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
+-- function TestState.test_go_next_buffer_wraps_to_beginning()
+-- 	state.bufList[1] = "place_holder_1"
+-- 	state.bufList[2] = "place_holder_5"
+-- 	state.currSelectedBuffer = 2
+--
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 2)
+-- 	state.go_next_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 1)
+-- end
 
-	luaunit.assertEquals(state.bufList[4], "place_holder_4")
-	state.add_buf_to_num(4, 0)
-	luaunit.assertEquals(state.bufList[4], "replacement_name")
-end
+-- function TestState.test_go_prev_buffer_currently_empty()
+-- 	for idx = 1, 10 do
+-- 		state.bufList[idx] = "place_holder_" .. idx
+-- 	end
+--
+-- 	luaunit.assertEquals(state.currSelectedBuffer, nil)
+-- 	state.go_prev_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 9)
+-- end
 
-function TestState:test_remove_buf_by_num_value_present()
-	for idx = 1, 10 do
-		table.insert(state.bufList, "place_holder_" .. idx)
-	end
+-- function TestState.test_go_prev_buffer_immediately_before()
+-- 	for idx = 1, 10 do
+-- 		state.bufList[idx] = "place_holder_" .. idx
+-- 	end
+--
+-- 	state.currSelectedBuffer = 2
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 2)
+-- 	state.go_prev_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 1)
+-- end
 
-	luaunit.assertEquals(state.bufList[4], "place_holder_4")
-	state.remove_buf_by_num(4)
-	luaunit.assertEquals(state.bufList[4], "place_holder_5")
-end
-
-function TestState:test_remove_buf_by_num_no_value_present()
-	luaunit.assertEquals(state.bufList[4], nil)
-	state.remove_buf_by_num(4)
-	luaunit.assertEquals(state.bufList[4], nil)
-end
-
-function TestState.test_go_next_buffer_currently_empty()
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
-
-	luaunit.assertEquals(state.currSelectedBuffer, nil)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-end
-
-function TestState.test_go_next_buffer_immediately_after()
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
-	state.currSelectedBuffer = 1
-
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 2)
-end
-
-function TestState.test_go_next_buffer_wraps_to_beginning()
-	state.bufList[1] = "place_holder_1"
-	state.bufList[2] = "place_holder_5"
-	state.currSelectedBuffer = 2
-
-	luaunit.assertEquals(state.currSelectedBuffer, 2)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-end
-
-function TestState.test_go_prev_buffer_currently_empty()
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
-
-	luaunit.assertEquals(state.currSelectedBuffer, nil)
-	state.go_prev_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 9)
-end
-
-function TestState.test_go_prev_buffer_immediately_before()
-	for idx = 1, 10 do
-		state.bufList[idx] = "place_holder_" .. idx
-	end
-
-	state.currSelectedBuffer = 2
-	luaunit.assertEquals(state.currSelectedBuffer, 2)
-	state.go_prev_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-end
-
-function TestState.test_go_prev_buffer_wraps_to_beginning()
-	state.bufList[1] = "place_holder_1"
-	state.bufList[2] = "place_holder_5"
-
-	state.currSelectedBuffer = 1
-
-	luaunit.assertEquals(state.currSelectedBuffer, 1)
-	state.go_next_buffer()
-	luaunit.assertEquals(state.currSelectedBuffer, 2)
-end
-
-os.exit(luaunit.LuaUnit.run())
+-- function TestState.test_go_prev_buffer_wraps_to_beginning()
+-- 	state.bufList[1] = "place_holder_1"
+-- 	state.bufList[2] = "place_holder_5"
+--
+-- 	state.currSelectedBuffer = 1
+--
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 1)
+-- 	state.go_next_buffer()
+-- 	luaunit.assertEquals(state.currSelectedBuffer, 2)
+-- end

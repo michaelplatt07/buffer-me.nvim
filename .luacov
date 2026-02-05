@@ -1,6 +1,6 @@
 return {
     statsfile = "luacov.stats.out",
     reportfile = "luacov.report.out",
-    exclude = { ".luarocks", "luarocks" },
+    exclude = { ".luarocks", "luarocks", "lua/tests" },
     delete_stats = true,
 }
