@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-export LUACOV_CONFIG="$PWD/.luacov.conf"
+export LUACOV_CONFIG="$PWD/.luacov"
 
 # Get lua version for lua rocks as it may not be the same across systems
 LUA_VERSION_INFO=$(lua -v 2>& 1)
