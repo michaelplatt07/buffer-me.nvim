@@ -28,10 +28,7 @@ function bufferme.open_selected_buffer()
 end
 
 local function getSelectedSearchResultBufHandle()
-	-- TODO(map) Move the closing of the windows to the windower itself. This method should only return the currently
-	-- selected buffer.
-	local win_handle = vim.api.nvim_get_current_win()
-	vim.api.nvim_win_close(win_handle, true)
+	vim.api.nvim_win_close(state.searchBarWindowHandle, true)
 	vim.api.nvim_win_close(state.searchResultsWindowHandle, true)
 
 	-- TODO(map) This may not be safe but that's tomorrow me's issue
@@ -121,7 +118,7 @@ function bufferme.open_search_bar()
 	state.init_required_buffers()
 
 	-- Set the lines for the buffer list
-	windower.create_buff_search_bar()
+	state.searchBarWindowHandle = windower.create_buff_search_bar()
 
 	-- Initialize the search result to the first entry
 	state.selected_search_result = 1

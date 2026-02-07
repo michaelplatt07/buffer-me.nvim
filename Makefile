@@ -1,12 +1,13 @@
-.PHONY: testunit testintegration test
+.PHONY: clearcoverage testunit testintegration test
 
-# rm -f luacov.report.out && rm -f luacov.stats.out && \
+clearcoverage:
+	@rm -f luacov.report.out && rm -f luacov.stats.out
 
 testunit:
 	@export PATH="./.luarocks/bin:$$PATH" && \
 	export LUA_PATH="./.luarocks/share/lua/5.3/?.lua;./.luarocks/share/lua/5.3/?/init.lua;./lua/?.lua;$$LUA_PATH" && \
 	export LUA_CPATH="./.luarocks/lib/lua/5.3/?.so;$$LUA_CPATH" && \
-	busted --coverage lua/tests/unit/*.lua && \
+	busted --coverage lua/tests/unit && \
 	luacov
 
 testintegration:
@@ -19,5 +20,5 @@ testintegration:
 	luacov
 
 
-testfull: testunit testintegration
+testfull: clearcoverage testunit testintegration
 	

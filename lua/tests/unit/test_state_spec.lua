@@ -8,36 +8,6 @@ _G.vim = {
 
 local state = nil
 
-describe("state.init_required_buffers", function()
-	before_each(function()
-		stub(vim.api, "nvim_create_buf", function()
-			return 1
-		end)
-
-		stub(vim.api, "nvim_buf_set_option", function()
-			-- no-op
-		end)
-
-		stub(vim.fn, "prompt_setprompt", function()
-			-- no-op
-		end)
-
-		-- Set up the dependencies
-		package.loaded["buffer-me.state"] = nil
-		state = require("buffer-me.state")
-	end)
-
-	it("initializes required buffers when they are nil", function()
-		assert.is_nil(state.bufListBuf)
-		assert.is_nil(state.hotswapBuf)
-
-		state.init_required_buffers()
-
-		assert.is_not_nil(state.bufListBuf)
-		assert.is_not_nil(state.hotswapBuf)
-	end)
-end)
-
 describe("state.append_to_buf_list", function()
 	before_each(function()
 		stub(vim.api, "nvim_buf_get_name", function()

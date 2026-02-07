@@ -10,6 +10,7 @@ local state = {
 	hotswapWindowHandle = nil,
 	bufListSearch = nil,
 	bufListSearchResultBuff = nil,
+	searchBarWindowHandle = nil,
 	searchResultsWindowHandle = nil,
 	buff_search_results = {},
 	selected_search_result = nil,
