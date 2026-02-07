@@ -1,0 +1,6 @@
+return {
+    statsfile = "luacov.stats.out",
+    reportfile = "luacov.report.out",
+    exclude = { ".luarocks", "luarocks", "lua/tests", "../plenary", "/usr", "vim" },
+    delete_stats = true,
+}

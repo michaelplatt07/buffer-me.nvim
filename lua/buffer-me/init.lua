@@ -9,6 +9,11 @@ function M.open()
 	bufferme.open_buffers_list()
 end
 
+function M.open_search()
+	-- Opens the buffer search bar
+	bufferme.open_search_bar()
+end
+
 function M.add()
 	-- Add the current buffer to the end of the buffer management list
 	bufferme.add_buf()
@@ -19,19 +24,9 @@ function M.add_all()
 	bufferme.add_all_buffers()
 end
 
-function M.set_buffer_number()
-	-- Sets the current buffer to the given number in the list
-	bufferme.add_buf_at_idx()
-end
-
 function M.remove_current_buffer()
 	-- Removes the specified buffer from the list of managed buffers
 	bufferme.remove_buf_current_selectded_buff()
-end
-
-function M.remove_buffer()
-	-- Removes the specified buffer from the list of managed buffers
-	bufferme.remove_buf_at_idx()
 end
 
 function M.go_to_buffer()

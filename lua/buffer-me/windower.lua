@@ -1,11 +1,29 @@
 local state = require("buffer-me.state")
 local windower = {}
 
+-- The highlight group needs to be global in the tool so it can be used anywhere
+windower.ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
+
+local function get_window_dimensions()
+	-- Gets the UI which should always actually be available. The else block is strictly for handling integrations as
+	-- they are being ran through the --headless switch.
+	local uis = vim.api.nvim_list_uis()
+	if uis and uis[1] then
+		return uis[1]
+	else
+		return {
+			height = 100,
+			width = 100,
+		}
+	end
+end
+
 function windower.create_buf_list_window()
+	local windowInfo = get_window_dimensions()
 	return vim.api.nvim_open_win(state.bufListBuf, true, {
 		relative = "editor",
-		row = 3,
-		col = 0,
+		row = math.floor((windowInfo.height - 20) / 2),
+		col = math.floor((windowInfo.width - 100) / 2),
 		width = 100,
 		height = 20,
 		border = "double",
@@ -40,10 +58,11 @@ function windower.re_render_buf_list_lines()
 end
 
 function windower.create_hot_swap_window()
+	local windowInfo = get_window_dimensions()
 	return vim.api.nvim_open_win(state.hotswapBuf, false, {
 		relative = "editor",
-		row = 0,
-		col = 0,
+		row = math.floor((windowInfo.height - 26) / 2),
+		col = math.floor((windowInfo.width - 100) / 2),
 		width = 100,
 		height = 2,
 		border = "double",
@@ -86,17 +105,92 @@ function windower.close_buffer_me()
 	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
 end
 
+function windower.close_buffer_me_search()
+	-- Reset the search results
+	state.buff_search_results = {}
+
+	-- Remove the reference to the old results window since it is going to be destroyed
+	state.searchResultsWindowHandle = nil
+
+	-- Close the buffers
+	state.clean_up_buffers_on_close()
+end
+
 --- Wrapper function around Neovim's line highlight functionality
 --- @param line_num number The 1-indexed value of the line number
-function windower.highlight_current_mark(line_num)
+function windower.highlight_current_mark(buf, line_num)
 	-- Subtract one from the line_num value because lua is 1 indexed
-	vim.api.nvim_buf_add_highlight(state.bufListBuf, -1, "CursorLine", line_num - 1, 0, -1)
+	local line = vim.api.nvim_buf_get_lines(buf, line_num - 1, line_num, false)[1]
+	vim.api.nvim_buf_set_extmark(buf, windower.ns_search_cursor, line_num - 1, 0, {
+		hl_group = "CursorLine",
+		end_col = #line,
+	})
 end
 
 --- Wrapper function around Neovim's line highlight removal functionality
 --- @param line_num number The 1-indexed value of the line number
-function windower.remove_highlight(line_num)
-	vim.api.nvim_buf_clear_namespace(state.bufListBuf, -1, line_num - 1, -1)
+function windower.remove_highlight(buf, line_num)
+	vim.api.nvim_buf_clear_namespace(buf, windower.ns_search_cursor, line_num - 1, -1)
+end
+
+function windower.create_buff_search_bar()
+	local windowInfo = get_window_dimensions()
+	return vim.api.nvim_open_win(state.bufListSearch, true, {
+		relative = "editor",
+		row = math.floor((windowInfo.height - 1) / 2),
+		col = math.floor((windowInfo.width - 100) / 2),
+		width = 100,
+		height = 1,
+		border = "double",
+		style = "minimal",
+		title = "Search",
+	})
+end
+
+function windower.create_buff_search_results_window_if_not_exists()
+	if state.searchResultsWindowHandle then
+		return state.searchResultsWindowHandle
+	else
+		local windowInfo = get_window_dimensions()
+		return vim.api.nvim_open_win(state.bufListSearchResultBuff, false, {
+			relative = "editor",
+			row = math.floor((windowInfo.height - 52) / 2),
+			col = math.floor((windowInfo.width - 100) / 2),
+			width = 100,
+			height = 25,
+			border = "double",
+			style = "minimal",
+			title = "Matches",
+		})
+	end
+end
+
+function windower.render_buf_search_results()
+	-- Enable modifications to draw the lines to the buffer
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+
+	local lines = {}
+	for _, value in pairs(state.buff_search_results) do
+		table.insert(lines, string.format("%s", value.item))
+	end
+	vim.api.nvim_buf_set_lines(state.bufListSearchResultBuff, 0, #lines, false, lines)
+
+	-- Disable modifications because it's rendered
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+end
+
+local function clear_buf_search_results()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	vim.api.nvim_buf_set_lines(state.bufListSearchResultBuff, 0, -1, false, {})
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+end
+
+function windower.re_render_buf_search_results()
+	clear_buf_search_results()
+	windower.render_buf_search_results()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
 end
 
 return windower
