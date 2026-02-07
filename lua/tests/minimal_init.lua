@@ -1,12 +1,10 @@
 -- Load luacov if coverage is enabled
--- if os.getenv("TEST_COV") then
 require("luacov")
 vim.api.nvim_create_autocmd("VimLeavePre", {
 	callback = function()
 		require("luacov.runner").save_stats()
 	end,
 })
--- end
 
 -- Set the paths
 vim.opt.rtp:append(".")
