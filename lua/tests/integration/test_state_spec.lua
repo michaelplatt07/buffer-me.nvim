@@ -1,6 +1,5 @@
 local state = nil
 
--- TODO(map) This test should be integration
 describe("state.init_required_buffers", function()
 	before_each(function()
 		package.loaded["buffer-me.state"] = nil
