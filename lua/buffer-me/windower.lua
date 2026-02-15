@@ -38,6 +38,9 @@ function windower.render_buf_list_lines()
 
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
+		if idx > #state.maxRecentBufferTrack then
+			break
+		end
 		table.insert(lines, string.format("%s: %s", idx, value))
 	end
 	vim.api.nvim_buf_set_lines(state.bufListBuf, 0, #lines, false, lines)

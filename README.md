@@ -31,6 +31,7 @@ return {
 		bufferme.setup({
 			auto_manage = true,
 			most_recent_to_top = true,
+            max_recent_buffer_track = 10,
 		})
 	end,
 }
@@ -40,6 +41,7 @@ The `branch` line is not necessary if the user doesn't desire to specify a parti
 **Config Options Explained**
 * `auto_manage`: Sets hooks that will add a buffer to the list of buffers upon opening or entering
 * `most_recent_to_top`: Ensures that any buffer added to the list is bumped to the top, whether it's through a manual add or using the hooks in the above flag
+* `max_recent_buffer_track`: How many recent buffers to track. This defaults to 10 but it can handle any size
 
 ## Keybindings
 When inside the window for managing buffers, the default keybindings are available to perform certain actions:

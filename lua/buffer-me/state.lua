@@ -4,7 +4,6 @@ local state = {
 	recentToTop = false,
 
 	-- State management
-	isBufListFull = false,
 	bufListBuf = nil,
 	hotswapBuf = nil,
 	hotswapWindowHandle = nil,
@@ -15,7 +14,7 @@ local state = {
 	buff_search_results = {},
 	selected_search_result = nil,
 	bufList = {},
-	maxBufferTrack = 10, -- Default to 10 but this can be set in configs
+	maxRecentBufferTrack = 10, -- Default to 10 but this can be set in configs
 	selectedRow = nil,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
@@ -55,11 +54,6 @@ function state.clean_up_buffers_on_close()
 end
 
 local function shiftAndInsertBuffer(buf_name)
-	if #state.bufList + 1 >= state.maxBufferTrack then
-		state.isBufListFull = true
-	else
-		state.isBufListFull = false
-	end
 	if buf_name ~= nil and buf_name ~= "" then
 		table.insert(state.bufList, 1, buf_name)
 	end
@@ -82,13 +76,6 @@ function state.append_to_buf_list(buf)
 	else
 		shiftAndInsertBuffer(buf_name)
 	end
-	--
-	-- Pop the last item from the list in the event it was not already part of the list to keep the list length to the
-	-- configured value
-	-- TODO: Clean up might need to be actually removing everything from the max onward.
-	if state.isBufListFull == true and existsInList == false then
-		table.remove(state.bufList, #state.bufList)
-	end
 end
 
 function state.check_for_dup_buf(buf_name)
@@ -109,7 +96,6 @@ function state.remove_buf_by_num(num)
 	-- Only remove if we can
 	if converted_num < #state.bufList then
 		table.remove(state.bufList, converted_num)
-		state.isBufListFull = false
 	end
 end
 
