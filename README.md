@@ -5,9 +5,9 @@ A simple plugin for managing buffers within NeoVim.
 The plugin is designed to offer the ability to track buffers and swap between them with an easy to use and intuitive 
 interface. It an automatically track buffers on entering and exiting and can also be manually modified with the list of
 commands below:
+* `BufferMe` -> Opens the list of most recently accessed buffers
+* `BufferMeSearch` -> Opens the search lst of all opened buffers
 * `BufferAppend` -> Function to add a buffer to the list of managed buffers
-* `BufferSet` -> Sets a buffer at the specified number in the list
-* `BufferRemove` -> Removes a buffer from the list
 * `BufferAddAll` -> Adds all currently open buffers within NeoVim to the managed list
 * `BufferOpenIdx` -> Opens a buffer at a specific index
 * `BufferClearAll` -> Removes all buffers from the managed list
