@@ -4,6 +4,11 @@ local keybindings = {
 		key = "q",
 		func = ':lua require("buffer-me.windower").close_buffer_me()<CR>',
 	},
+	quit_esc = {
+		mode = "n",
+		key = "<Esc>",
+		func = ':lua require("buffer-me.windower").close_buffer_me()<CR>',
+	},
 	open = { mode = "n", key = "o", func = ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>' },
 	delete = {
 		mode = "n",
@@ -66,6 +71,10 @@ local searchKeybindings = {
 		mode = "n",
 		key = "q",
 	},
+	close_esc = {
+		mode = "n",
+		key = "<Esc>",
+	},
 }
 
 function keybindings.update_key_binding(func, custombind)
@@ -110,6 +119,7 @@ function keybindings.map_keys(buf)
 	)
 	vim.api.nvim_buf_set_keymap(buf, keybindings.go_to.mode, keybindings.go_to.key, keybindings.go_to.func, {})
 	vim.api.nvim_buf_set_keymap(buf, keybindings.quit.mode, keybindings.quit.key, keybindings.quit.func, {})
+	vim.api.nvim_buf_set_keymap(buf, keybindings.quit_esc.mode, keybindings.quit_esc.key, keybindings.quit_esc.func, {})
 end
 
 function keybindings.map_search_keys(buf)
@@ -165,12 +175,18 @@ function keybindings.map_search_keys(buf)
 	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
 		require("buffer-me.bufferme").close_buffer_me_search()
 	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.close_esc.mode, searchKeybindings.close_esc.key, function()
+		require("buffer-me.bufferme").close_buffer_me_search()
+	end, { buffer = buf })
 end
 
 function keybindings.map_search_res_keys(buf)
 	-- This is a safety that lets the user close the search if they accidentally click into the search result window. It
 	-- will just close everything up the same as if they hit close in the search bar
 	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
+		require("buffer-me.bufferme").close_buffer_me_search()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.close_esc.mode, searchKeybindings.close_esc.key, function()
 		require("buffer-me.bufferme").close_buffer_me_search()
 	end, { buffer = buf })
 end

@@ -224,3 +224,26 @@ describe("bufferme.move_search_selection", function()
 		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
 	end)
 end)
+
+describe("bufferme.open_buffers_list", function()
+	before_each(function()
+		package.loaded["buffer-me.bufferme"] = nil
+		package.loaded["buffer-me.state"] = nil
+		package.loaded["buffer-me.windower"] = nil
+		bufferme = require("buffer-me.bufferme")
+		state = require("buffer-me.state")
+		windower = require("buffer-me.windower")
+	end)
+
+	it("Should only show the first three buffers despite having several in the list", function()
+		-- Set up the state to have more than three buffers but have a max recent track of three
+		state.maxRecentBufferTrack = 3
+		state.bufList = { "Buf 1", "Buf 2", "Buf 3", "Buf 4", "Buf 5" }
+
+		-- Make the call
+		bufferme.open_buffers_list()
+
+		-- Assert only the first three buffers were rendered
+		assert.same(vim.api.nvim_buf_get_lines(state.bufListBuf, 0, -1, true), { "1: Buf 1", "2: Buf 2", "3: Buf 3" })
+	end)
+end)

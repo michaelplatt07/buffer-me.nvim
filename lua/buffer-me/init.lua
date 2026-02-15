@@ -87,8 +87,8 @@ function M.setup(config)
 		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
 			state.recentToTop = config.most_recent_to_top
 		end
-		if config.max_buffer_track ~= nil then
-			state.maxBufferTrack = config.max_buffer_track
+		if config.max_recent_buffer_track ~= nil then
+			state.maxRecentBufferTrack = config.max_recent_buffer_track
 		end
 		if config.debug ~= nil and config.debug == true then
 			state.debug = config.debug

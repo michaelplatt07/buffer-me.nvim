@@ -71,7 +71,6 @@ describe("state.append_to_buf_list", function()
 	end)
 
 	it("Should add the buffer to the list and mark the list as full", function()
-		state.isBufListFull = false
 		for idx = 1, 9 do
 			state.bufList[idx] = "sample_buf_" .. idx + 1
 		end
@@ -83,11 +82,10 @@ describe("state.append_to_buf_list", function()
 		assert.is_equal(state.bufList[1], "sample_buf_1")
 		assert.is_equal(state.bufList[2], "sample_buf_2")
 		assert.is_equal(state.bufList[3], "sample_buf_3")
-		assert.is_true(state.isBufListFull)
+		assert.is_equal(#state.bufList, 10)
 	end)
 
 	it("Should add the buffer but not beyond the allowed list size", function()
-		state.isBufListFull = true
 		for idx = 1, 10 do
 			state.bufList[idx] = "sample_buf_" .. idx + 1
 		end
@@ -99,11 +97,9 @@ describe("state.append_to_buf_list", function()
 		assert.is_equal(state.bufList[1], "sample_buf_1")
 		assert.is_equal(state.bufList[2], "sample_buf_2")
 		assert.is_equal(state.bufList[3], "sample_buf_3")
-		assert.is_true(state.isBufListFull)
 	end)
 
 	it("Should move an already listed buffer to the top of the list", function()
-		state.isBufListFull = true
 		state.recentToTop = true
 		for idx = 10, 1, -1 do
 			table.insert(state.bufList, "sample_buf_" .. idx)
@@ -116,7 +112,6 @@ describe("state.append_to_buf_list", function()
 		assert.is_equal(state.bufList[1], "sample_buf_1")
 		assert.is_equal(state.bufList[2], "sample_buf_10")
 		assert.is_equal(state.bufList[3], "sample_buf_9")
-		assert.is_true(state.isBufListFull)
 	end)
 end)
 
