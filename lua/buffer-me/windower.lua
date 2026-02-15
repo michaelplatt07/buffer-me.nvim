@@ -38,7 +38,7 @@ function windower.render_buf_list_lines()
 
 	local lines = {}
 	for idx, value in pairs(state.bufList) do
-		if idx > #state.maxRecentBufferTrack then
+		if idx > state.maxRecentBufferTrack then
 			break
 		end
 		table.insert(lines, string.format("%s: %s", idx, value))
