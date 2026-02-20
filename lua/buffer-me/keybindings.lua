@@ -77,7 +77,7 @@ local searchKeybindings = {
 	},
 	delete_i_mode = {
 		mode = "i",
-		key = "d",
+		key = "<C-d>",
 	},
 	delete_n_mode = {
 		mode = "n",
