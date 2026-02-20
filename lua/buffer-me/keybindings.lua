@@ -75,6 +75,14 @@ local searchKeybindings = {
 		mode = "n",
 		key = "<Esc>",
 	},
+	delete_i_mode = {
+		mode = "i",
+		key = "d",
+	},
+	delete_n_mode = {
+		mode = "n",
+		key = "d",
+	},
 }
 
 function keybindings.update_key_binding(func, custombind)
@@ -177,6 +185,12 @@ function keybindings.map_search_keys(buf)
 	end, { buffer = buf })
 	vim.keymap.set(searchKeybindings.close_esc.mode, searchKeybindings.close_esc.key, function()
 		require("buffer-me.bufferme").close_buffer_me_search()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.delete_i_mode.mode, searchKeybindings.delete_i_mode.key, function()
+		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.delete_n_mode.mode, searchKeybindings.delete_n_mode.key, function()
+		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
 	end, { buffer = buf })
 end
 

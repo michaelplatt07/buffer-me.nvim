@@ -162,6 +162,15 @@ function bufferme.move_search_selection_down()
 	windower.re_render_buf_search_results()
 end
 
+function bufferme.delete_and_re_render_buf_search_list()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+
+	state.remove_selected_buf_from_list()
+	windower.re_render_buf_search_results()
+end
+
 function bufferme.add_buf()
 	state.append_to_buf_list(0)
 end
