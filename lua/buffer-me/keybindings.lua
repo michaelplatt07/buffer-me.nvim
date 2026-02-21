@@ -32,6 +32,14 @@ local keybindings = {
 }
 
 local searchKeybindings = {
+	move_up_normal = {
+		mode = "n",
+		key = "j",
+	},
+	move_down_normal = {
+		mode = "n",
+		key = "k",
+	},
 	move_up = {
 		mode = "i",
 		key = "<C-p>",
@@ -118,6 +126,26 @@ function keybindings.map_keys(buf)
 end
 
 function keybindings.map_search_keys(buf)
+	vim.keymap.set(searchKeybindings.move_up_normal.mode, searchKeybindings.move_up_normal.key, function()
+		vim.schedule(function()
+			require("buffer-me.bufferme").move_search_selection_up()
+		end)
+	end, {
+		buffer = buf,
+		expr = true,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchKeybindings.move_down_normal.mode, searchKeybindings.move_down_normal.key, function()
+		vim.schedule(function()
+			require("buffer-me.bufferme").move_search_selection_down()
+		end)
+	end, {
+		buffer = buf,
+		expr = true,
+		noremap = true,
+		silent = true,
+	})
 	vim.keymap.set(searchKeybindings.move_up.mode, searchKeybindings.move_up.key, function()
 		vim.schedule(function()
 			require("buffer-me.bufferme").move_search_selection_up()
