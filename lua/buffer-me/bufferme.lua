@@ -65,7 +65,7 @@ function bufferme.open_selected_search_result_v_split()
 	windower.close_buffer_me_search()
 end
 
-function bufferme.open_selected_serach_result_h_split()
+function bufferme.open_selected_search_result_h_split()
 	-- Exit insert mode safely first
 	if vim.fn.mode() == "i" then
 		vim.cmd("stopinsert")
