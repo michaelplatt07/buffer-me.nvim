@@ -56,6 +56,10 @@ local searchKeybindings = {
 		mode = "i",
 		key = "<Down>",
 	},
+	open_normal = {
+		mode = "n",
+		key = "<CR>",
+	},
 	open = {
 		mode = "i",
 		key = "<CR>",
@@ -186,6 +190,9 @@ function keybindings.map_search_keys(buf)
 		noremap = true,
 		silent = true,
 	})
+	vim.keymap.set(searchKeybindings.open_normal.mode, searchKeybindings.open_normal.key, function()
+		require("buffer-me.bufferme").open_selected_search_result()
+	end, { buffer = buf })
 	vim.keymap.set(searchKeybindings.open.mode, searchKeybindings.open.key, function()
 		require("buffer-me.bufferme").open_selected_search_result()
 	end, { buffer = buf })
