@@ -70,7 +70,7 @@ local searchKeybindings = {
 	},
 	open_h_split = {
 		mode = "i",
-		key = "<C-h>",
+		key = "<C-s>",
 	},
 	close = {
 		mode = "n",
