@@ -52,6 +52,32 @@ function bufferme.open_selected_search_result()
 	windower.close_buffer_me_search()
 end
 
+function bufferme.open_selected_search_result_v_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_search_result()
+	windower.close_buffer_me_search()
+end
+
+function bufferme.open_selected_serach_result_h_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	vim.cmd("split")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_search_result()
+	windower.close_buffer_me_search()
+end
+
 function bufferme.open_selected_buffer_v_split()
 	local selected_buf_handle = getSelectedBufHandle()
 	vim.cmd("vsplit")
@@ -159,6 +185,15 @@ function bufferme.move_search_selection_down()
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
 
 	state.move_down_selected_search_result()
+	windower.re_render_buf_search_results()
+end
+
+function bufferme.delete_and_re_render_buf_search_list()
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
+	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
+	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+
+	state.remove_selected_buf_from_list()
 	windower.re_render_buf_search_results()
 end
 

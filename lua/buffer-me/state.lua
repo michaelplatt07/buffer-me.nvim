@@ -90,12 +90,12 @@ function state.check_for_dup_buf(buf_name)
 	return is_dup, dup_loc
 end
 
-function state.remove_buf_by_num(num)
+function state.remove_buf_by_num(num, bufList)
 	local converted_num = tonumber(num)
 
 	-- Only remove if we can
-	if converted_num < #state.bufList then
-		table.remove(state.bufList, converted_num)
+	if converted_num <= #bufList then
+		table.remove(bufList, converted_num)
 	end
 end
 
@@ -212,6 +212,17 @@ function state.move_down_selected_search_result()
 		state.selected_search_result = #state.buff_search_results
 	else
 		state.selected_search_result = state.selected_search_result + 1
+	end
+end
+
+function state.remove_selected_buf_from_list()
+	if state.selected_search_result >= #state.buff_search_results then
+		-- Handle the case deleting the last item and needing to highlight the last item again
+		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
+		state.selected_search_result = #state.buff_search_results
+	else
+		-- Handle everything else for deleting
+		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
 	end
 end
 

@@ -1,3 +1,5 @@
+local utils = require("tests.utils")
+
 local bufferme = nil
 local state = nil
 local windower = nil
@@ -10,6 +12,7 @@ describe("bufferme.open_selected_buffer", function()
 		bufferme = require("buffer-me.bufferme")
 		state = require("buffer-me.state")
 		windower = require("buffer-me.windower")
+		utils.reset_nvim()
 	end)
 
 	it("Should open the selected buffer in the current window", function()
@@ -62,6 +65,7 @@ describe("bufferme.open_selected_search_result", function()
 		bufferme = require("buffer-me.bufferme")
 		state = require("buffer-me.state")
 		windower = require("buffer-me.windower")
+		utils.reset_nvim()
 	end)
 
 	it("Should open the selected search result buffer in the current window", function()
@@ -123,6 +127,7 @@ describe("bufferme.open_search_bar", function()
 		bufferme = require("buffer-me.bufferme")
 		state = require("buffer-me.state")
 		windower = require("buffer-me.windower")
+		utils.reset_nvim()
 	end)
 
 	it("Should open the search bar for the buffer list", function()
@@ -144,6 +149,7 @@ describe("bufferme.move_search_selection", function()
 		bufferme = require("buffer-me.bufferme")
 		state = require("buffer-me.state")
 		windower = require("buffer-me.windower")
+		utils.reset_nvim()
 	end)
 
 	it("Should move the search selection up", function()
@@ -233,6 +239,7 @@ describe("bufferme.open_buffers_list", function()
 		bufferme = require("buffer-me.bufferme")
 		state = require("buffer-me.state")
 		windower = require("buffer-me.windower")
+		utils.reset_nvim()
 	end)
 
 	it("Should only show the first three buffers despite having several in the list", function()
@@ -245,5 +252,263 @@ describe("bufferme.open_buffers_list", function()
 
 		-- Assert only the first three buffers were rendered
 		assert.same(vim.api.nvim_buf_get_lines(state.bufListBuf, 0, -1, true), { "1: Buf 1", "2: Buf 2", "3: Buf 3" })
+	end)
+end)
+
+describe("bufferme.delete_and_re_render_buf_search_list", function()
+	before_each(function()
+		package.loaded["buffer-me.bufferme"] = nil
+		package.loaded["buffer-me.state"] = nil
+		package.loaded["buffer-me.windower"] = nil
+		bufferme = require("buffer-me.bufferme")
+		state = require("buffer-me.state")
+		windower = require("buffer-me.windower")
+		utils.reset_nvim()
+	end)
+
+	it("Remove the buffer from the middle of the list and rerender the search dialog", function()
+		-- Set up the required buffers
+		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
+		state.buff_search_results = { "Line 1", "Line 2", "Line 3" }
+		vim.api.nvim_buf_set_lines(
+			state.bufListSearchResultBuff,
+			0,
+			#state.buff_search_results,
+			false,
+			state.buff_search_results
+		)
+
+		--Set up the state to be ready to delete the buffer in the middle of the list
+		state.selected_search_result = 2
+		windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
+		local highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+
+		-- Make the call
+		bufferme.delete_and_re_render_buf_search_list()
+
+		-- Assert everything was updated
+		highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(state.selected_search_result, 2)
+		assert.same(state.buff_search_results, { "Line 1", "Line 3" })
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	end)
+
+	it("Remove the buffer from the top of the list and rerender the search dialog", function()
+		-- Set up the required buffers
+		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
+		state.buff_search_results = { "Line 1", "Line 2", "Line 3" }
+		vim.api.nvim_buf_set_lines(
+			state.bufListSearchResultBuff,
+			0,
+			#state.buff_search_results,
+			false,
+			state.buff_search_results
+		)
+
+		--Set up the state to be ready to delete the buffer at the top of the list
+		state.selected_search_result = 1
+		windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
+		local highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+
+		-- Make the call
+		bufferme.delete_and_re_render_buf_search_list()
+
+		-- Assert everything was updated
+		highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(state.selected_search_result, 1)
+		assert.same(state.buff_search_results, { "Line 2", "Line 3" })
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	end)
+
+	it("Remove the buffer from the bottom of the list and rerender the search dialog", function()
+		-- Set up the required buffers
+		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
+		state.buff_search_results = { "Line 1", "Line 2", "Line 3" }
+		vim.api.nvim_buf_set_lines(
+			state.bufListSearchResultBuff,
+			0,
+			#state.buff_search_results,
+			false,
+			state.buff_search_results
+		)
+
+		--Set up the state to be ready to delete the buffer in the middle of the list
+		state.selected_search_result = 3
+		windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
+		local highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+
+		-- Make the call
+		bufferme.delete_and_re_render_buf_search_list()
+
+		-- Assert everything was updated
+		highlights = vim.api.nvim_buf_get_extmarks(
+			state.bufListSearchResultBuff,
+			windower.ns_search_cursor,
+			0,
+			-1,
+			{ details = true }
+		)
+		assert.is_equal(state.selected_search_result, 2)
+		assert.same(state.buff_search_results, { "Line 1", "Line 2" })
+		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	end)
+end)
+
+describe("bufferme.open_selected_search_result_v_split", function()
+	before_each(function()
+		package.loaded["buffer-me.bufferme"] = nil
+		package.loaded["buffer-me.state"] = nil
+		package.loaded["buffer-me.windower"] = nil
+		bufferme = require("buffer-me.bufferme")
+		state = require("buffer-me.state")
+		windower = require("buffer-me.windower")
+		utils.reset_nvim()
+	end)
+
+	it("Should open the buffer in a new vsplit", function()
+		-- Ensure there is only one pane to start
+		assert.is_equal(1, #vim.api.nvim_tabpage_list_wins(0))
+
+		-- Set up the curren buffer and selected buffer
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		local buf_1 = vim.api.nvim_create_buf(false, true)
+
+		-- Open the buf search and search results windows
+		local buf_search_buffer = vim.api.nvim_create_buf(false, true)
+		local buf_search_results_buffer = vim.api.nvim_create_buf(false, true)
+		state.bufListSearch = buf_search_buffer
+		state.bufListSearchResultBuff = buf_search_results_buffer
+		state.searchBarWindowHandle = vim.api.nvim_open_win(buf_search_buffer, true, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+		state.searchResultsWindowHandle = vim.api.nvim_open_win(buf_search_results_buffer, false, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+
+		-- Define state and set the search results to be accessed
+		state.buff_search_results = {
+			{ item = buf_1, score = 3 },
+		}
+		-- Set the current buffer
+		vim.api.nvim_set_current_buf(current_buf)
+		-- Pick a search result
+		state.selected_search_result = 1
+
+		-- Make the call
+		bufferme.open_selected_search_result_v_split()
+
+		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)
+		assert.is_nil(state.selected_search_result)
+		assert.are.same(state.buff_search_results, {})
+		assert.is_nil(state.searchResultsWindowHandle)
+		assert.is_nil(state.bufListSearch)
+		assert.is_nil(state.bufListSearchResultBuff)
+		assert.is_equal(2, #vim.api.nvim_tabpage_list_wins(0))
+		assert.is_equal("row", vim.fn.winlayout()[1])
+	end)
+end)
+
+describe("bufferme.open_selected_search_result_h_split", function()
+	before_each(function()
+		package.loaded["buffer-me.bufferme"] = nil
+		package.loaded["buffer-me.state"] = nil
+		package.loaded["buffer-me.windower"] = nil
+		bufferme = require("buffer-me.bufferme")
+		state = require("buffer-me.state")
+		windower = require("buffer-me.windower")
+		utils.reset_nvim()
+	end)
+
+	it("Should open the buffer in a new vsplit", function()
+		-- Ensure there is only one pane to start
+		assert.is_equal(1, #vim.api.nvim_tabpage_list_wins(0))
+
+		-- Set up the curren buffer and selected buffer
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		local buf_1 = vim.api.nvim_create_buf(false, true)
+
+		-- Open the buf search and search results windows
+		local buf_search_buffer = vim.api.nvim_create_buf(false, true)
+		local buf_search_results_buffer = vim.api.nvim_create_buf(false, true)
+		state.bufListSearch = buf_search_buffer
+		state.bufListSearchResultBuff = buf_search_results_buffer
+		state.searchBarWindowHandle = vim.api.nvim_open_win(buf_search_buffer, true, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+		state.searchResultsWindowHandle = vim.api.nvim_open_win(buf_search_results_buffer, false, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+
+		-- Define state and set the search results to be accessed
+		state.buff_search_results = {
+			{ item = buf_1, score = 3 },
+		}
+		-- Set the current buffer
+		vim.api.nvim_set_current_buf(current_buf)
+		-- Pick a search result
+		state.selected_search_result = 1
+
+		-- Make the call
+		bufferme.open_selected_serach_result_h_split()
+
+		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)
+		assert.is_nil(state.selected_search_result)
+		assert.are.same(state.buff_search_results, {})
+		assert.is_nil(state.searchResultsWindowHandle)
+		assert.is_nil(state.bufListSearch)
+		assert.is_nil(state.bufListSearchResultBuff)
+		assert.is_equal(2, #vim.api.nvim_tabpage_list_wins(0))
+		assert.is_equal("col", vim.fn.winlayout()[1])
 	end)
 end)
