@@ -42,7 +42,6 @@ function bufferme.open_selected_search_result()
 	end
 
 	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	vim.api.nvim_set_current_buf(selected_buf_handle)
 
 	-- Clear the state
 	state.clear_selected_search_result()
@@ -50,6 +49,9 @@ function bufferme.open_selected_search_result()
 	-- every time the plugin loads up. In the case of the buffer list, we build the content of the buffer each time over
 	-- and over. Maybe not the most efficient right now but it's a small plugin.
 	windower.close_buffer_me_search()
+
+	-- Set the current opened buffer to the selected buffer
+	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
 function bufferme.open_selected_search_result_v_split()
@@ -59,10 +61,11 @@ function bufferme.open_selected_search_result_v_split()
 	end
 
 	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	vim.cmd("vsplit")
-	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_search_result()
 	windower.close_buffer_me_search()
+
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
 function bufferme.open_selected_serach_result_h_split()
@@ -71,11 +74,12 @@ function bufferme.open_selected_serach_result_h_split()
 		vim.cmd("stopinsert")
 	end
 
-	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	vim.cmd("split")
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_search_result()
 	windower.close_buffer_me_search()
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	vim.cmd("split")
 end
 
 function bufferme.open_selected_buffer_v_split()
