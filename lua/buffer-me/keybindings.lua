@@ -2,40 +2,33 @@ local keybindings = {
 	quit = {
 		mode = "n",
 		key = "q",
-		func = ':lua require("buffer-me.windower").close_buffer_me()<CR>',
 	},
 	quit_esc = {
 		mode = "n",
 		key = "<Esc>",
-		func = ':lua require("buffer-me.windower").close_buffer_me()<CR>',
 	},
-	open = { mode = "n", key = "o", func = ':lua require("buffer-me.bufferme").open_selected_buffer()<CR>' },
+	open = { mode = "n", key = "o" },
 	delete = {
 		mode = "n",
 		key = "d",
-		func = ':lua require("buffer-me.keybindings").delete_and_re_render_buf_list()<CR>',
 	},
 	open_v_split = {
 		mode = "n",
 		key = "v",
-		func = ':lua require("buffer-me.bufferme").open_selected_buffer_v_split()<CR>',
 	},
 	open_h_split = {
 		mode = "n",
 		key = "h",
-		func = ':lua require("buffer-me.bufferme").open_selected_buffer_h_split()<CR>',
 	},
 	set_first_hotswap = {
 		mode = "n",
 		key = "f",
-		func = ':lua require("buffer-me.bufferme").set_first_hotswap_from_window()<CR>',
 	},
 	set_second_hotswap = {
 		mode = "n",
 		key = "s",
-		func = ':lua require("buffer-me.bufferme").set_second_hotswap_from_window()<CR>',
 	},
-	go_to = { mode = "n", key = "g", func = ':lua require("buffer-me.bufferme").go_to_buffer()<CR>' },
+	go_to = { mode = "n", key = "g" },
 }
 
 local searchKeybindings = {
@@ -95,39 +88,33 @@ function keybindings.delete_and_re_render_buf_list()
 end
 
 function keybindings.map_keys(buf)
-	vim.api.nvim_buf_set_keymap(buf, keybindings.open.mode, keybindings.open.key, keybindings.open.func, {})
-	vim.api.nvim_buf_set_keymap(buf, keybindings.delete.mode, keybindings.delete.key, keybindings.delete.func, {})
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		keybindings.open_v_split.mode,
-		keybindings.open_v_split.key,
-		keybindings.open_v_split.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		keybindings.open_h_split.mode,
-		keybindings.open_h_split.key,
-		keybindings.open_h_split.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		keybindings.set_first_hotswap.mode,
-		keybindings.set_first_hotswap.key,
-		keybindings.set_first_hotswap.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(
-		buf,
-		keybindings.set_second_hotswap.mode,
-		keybindings.set_second_hotswap.key,
-		keybindings.set_second_hotswap.func,
-		{}
-	)
-	vim.api.nvim_buf_set_keymap(buf, keybindings.go_to.mode, keybindings.go_to.key, keybindings.go_to.func, {})
-	vim.api.nvim_buf_set_keymap(buf, keybindings.quit.mode, keybindings.quit.key, keybindings.quit.func, {})
-	vim.api.nvim_buf_set_keymap(buf, keybindings.quit_esc.mode, keybindings.quit_esc.key, keybindings.quit_esc.func, {})
+	vim.keymap.set(keybindings.open.mode, keybindings.open.key, function()
+		require("buffer-me.windower").close_buffer_me()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.delete.mode, keybindings.delete.key, function()
+		require("buffer-me.windower").close_buffer_me()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.open_v_split.mode, keybindings.open_v_split.key, function()
+		require("buffer-me.bufferme").open_selected_buffer()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.open_h_split.mode, keybindings.open_h_split.key, function()
+		require("buffer-me.keybindings").delete_and_re_render_buf_list()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.set_first_hotswap.mode, keybindings.set_first_hotswap.key, function()
+		require("buffer-me.bufferme").open_selected_buffer_v_split()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.set_second_hotswap.mode, keybindings.set_second_hotswap.key, function()
+		require("buffer-me.bufferme").open_selected_buffer_h_split()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.go_to.mode, keybindings.go_to.key, function()
+		require("buffer-me.bufferme").set_first_hotswap_from_window()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.quit.mode, keybindings.quit.key, function()
+		require("buffer-me.bufferme").set_second_hotswap_from_window()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.quit_esc.mode, keybindings.quit_esc.key, function()
+		require("buffer-me.bufferme").go_to_buffer()
+	end, { buffer = buf })
 end
 
 function keybindings.map_search_keys(buf)
@@ -188,7 +175,7 @@ function keybindings.map_search_keys(buf)
 	end, { buffer = buf })
 	vim.keymap.set(searchKeybindings.delete_i_mode.mode, searchKeybindings.delete_i_mode.key, function()
 		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
-	end, { buffer = buf })
+	end, { buffer = buf, expr = true, noremap = true, silent = true })
 	vim.keymap.set(searchKeybindings.delete_n_mode.mode, searchKeybindings.delete_n_mode.key, function()
 		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
 	end, { buffer = buf })

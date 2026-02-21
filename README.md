@@ -88,14 +88,19 @@ vim.keymap.set("n", "<leader>b", ":BufferMe<cr>")
 ```
 
 ## Test Suite
-This plugin comes with a test suite that can be ran but will required some dependencies to be installed first. Run the
-following commands to set up the project for testing:
+This plugin comes with a test suite that can be ran but will required some dependencies to be installed first. The plugin
+will need luarock installed in some way: 
 ```bash
 sudo apt-get install luarocks
+```
+For the purposes of keeping depdencies separate, the required rocks can be installed locally at the root level of the plugin:
+```bash
 cd buffer-me.nvim
 luarocks install busted --tree=.luarocks
 luarocks install luacov --tree=.luarocks
 ```
+The plugin will also need `plenary.nvim` in the same directory as the root of this plugin to be able to run integration
+tests. Then test can be ran with the `Makefile` with any of the commands listed.
 
 ### Feature Requests/Bugs
 If you find a bug or have a request for a feature feel free to add them in GitHub under the issue tracker
