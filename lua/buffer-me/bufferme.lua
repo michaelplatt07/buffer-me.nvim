@@ -52,6 +52,32 @@ function bufferme.open_selected_search_result()
 	windower.close_buffer_me_search()
 end
 
+function bufferme.open_selected_search_result_v_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_search_result()
+	windower.close_buffer_me_search()
+end
+
+function bufferme.open_selected_serach_result_h_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedSearchResultBufHandle()
+	vim.cmd("split")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+	state.clear_selected_search_result()
+	windower.close_buffer_me_search()
+end
+
 function bufferme.open_selected_buffer_v_split()
 	local selected_buf_handle = getSelectedBufHandle()
 	vim.cmd("vsplit")
