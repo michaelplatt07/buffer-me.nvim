@@ -132,7 +132,7 @@ end
 function keybindings.map_search_keys(buf)
 	vim.keymap.set(searchKeybindings.move_up_normal.mode, searchKeybindings.move_up_normal.key, function()
 		vim.schedule(function()
-			require("buffer-me.bufferme").move_search_selection_up()
+			require("buffer-me.bufferme").move_search_selection_down()
 		end)
 	end, {
 		buffer = buf,
@@ -142,7 +142,7 @@ function keybindings.map_search_keys(buf)
 	})
 	vim.keymap.set(searchKeybindings.move_down_normal.mode, searchKeybindings.move_down_normal.key, function()
 		vim.schedule(function()
-			require("buffer-me.bufferme").move_search_selection_down()
+			require("buffer-me.bufferme").move_search_selection_up()
 		end)
 	end, {
 		buffer = buf,
