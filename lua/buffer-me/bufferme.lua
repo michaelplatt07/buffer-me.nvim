@@ -188,6 +188,15 @@ function bufferme.move_search_selection_down()
 	windower.re_render_buf_search_results()
 end
 
+function bufferme.delete_and_re_render_buf_list()
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
+	windower.remove_highlight(state.bufListBuf, state.selectedRow)
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
+
+	bufferme.remove_buf_current_selectded_buff()
+	windower.re_render_buf_list_lines()
+end
+
 function bufferme.delete_and_re_render_buf_search_list()
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
 	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
@@ -310,8 +319,25 @@ function bufferme.open_second_hotswap()
 	end
 end
 
+function bufferme.close_buffer_me()
+	windower.close_buffer_me()
+end
+
 function bufferme.close_buffer_me_search()
 	windower.close_buffer_me_search()
 end
+
+function bufferme.select_window_placement()
+	print("TODO(map) Implement me")
+end
+
+-- TODO(map) Remvoe after debugging
+function bufferme.render()
+	windower.create_window_labels()
+end
+function bufferme.clear()
+	require("buffer-me.utils").clear_window_map()
+end
+-- End TODO(map)
 
 return bufferme

@@ -74,6 +74,15 @@ function M.toggle_last_buffer()
 	bufferme.open_most_recent_buffer()
 end
 
+-- TODO(map) Remvoe after debugging
+function M.render()
+	bufferme.render()
+end
+function M.clear()
+	bufferme.clear()
+end
+-- End TODO(map)
+
 function M.setup(config)
 	if config ~= nil then
 		if config.keys ~= nil then

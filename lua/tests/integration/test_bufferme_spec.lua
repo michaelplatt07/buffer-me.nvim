@@ -499,7 +499,7 @@ describe("bufferme.open_selected_search_result_h_split", function()
 		state.selected_search_result = 1
 
 		-- Make the call
-		bufferme.open_selected_serach_result_h_split()
+		bufferme.open_selected_search_result_h_split()
 
 		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
 		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)

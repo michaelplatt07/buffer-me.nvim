@@ -1,10 +1,11 @@
 local state = require("buffer-me.state")
+local utils = require("buffer-me.utils")
 local windower = {}
 
 -- The highlight group needs to be global in the tool so it can be used anywhere
 windower.ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
 
-local function get_window_dimensions()
+local function get_full_window_dimensions()
 	-- Gets the UI which should always actually be available. The else block is strictly for handling integrations as
 	-- they are being ran through the --headless switch.
 	local uis = vim.api.nvim_list_uis()
@@ -18,8 +19,15 @@ local function get_window_dimensions()
 	end
 end
 
+local function get_specified_window_dimensions(winId)
+	-- Gets the dimensions of a given window instead of the overall terminal's size.
+	local width = vim.api.nvim_win_get_width(winId)
+	local height = vim.api.nvim_win_get_height(winId)
+	return { width = width, height = height }
+end
+
 function windower.create_buf_list_window()
-	local windowInfo = get_window_dimensions()
+	local windowInfo = get_full_window_dimensions()
 	return vim.api.nvim_open_win(state.bufListBuf, true, {
 		relative = "editor",
 		row = math.floor((windowInfo.height - 20) / 2),
@@ -61,7 +69,7 @@ function windower.re_render_buf_list_lines()
 end
 
 function windower.create_hot_swap_window()
-	local windowInfo = get_window_dimensions()
+	local windowInfo = get_full_window_dimensions()
 	return vim.api.nvim_open_win(state.hotswapBuf, false, {
 		relative = "editor",
 		row = math.floor((windowInfo.height - 26) / 2),
@@ -137,7 +145,7 @@ function windower.remove_highlight(buf, line_num)
 end
 
 function windower.create_buff_search_bar()
-	local windowInfo = get_window_dimensions()
+	local windowInfo = get_full_window_dimensions()
 	return vim.api.nvim_open_win(state.bufListSearch, true, {
 		relative = "editor",
 		row = math.floor((windowInfo.height - 1) / 2),
@@ -154,7 +162,7 @@ function windower.create_buff_search_results_window_if_not_exists()
 	if state.searchResultsWindowHandle then
 		return state.searchResultsWindowHandle
 	else
-		local windowInfo = get_window_dimensions()
+		local windowInfo = get_full_window_dimensions()
 		return vim.api.nvim_open_win(state.bufListSearchResultBuff, false, {
 			relative = "editor",
 			row = math.floor((windowInfo.height - 52) / 2),
@@ -194,6 +202,28 @@ function windower.re_render_buf_search_results()
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
 	windower.highlight_current_mark(state.bufListSearchResultBuff, state.selected_search_result)
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", false)
+end
+
+function windower.create_window_labels()
+	utils.build_windows_map()
+	for idx, windowNum in ipairs(utils.windowMap) do
+		local buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, utils.numberToAsciiMap[idx])
+		vim.api.nvim_buf_set_option(buf, "buftype", "nofile")
+		local windowInfo = get_specified_window_dimensions(windowNum)
+		local win = vim.api.nvim_open_win(buf, false, {
+			relative = "win",
+			win = windowNum,
+			row = math.floor((windowInfo.height - 7) / 2),
+			col = math.floor((windowInfo.width - 5) / 2),
+			width = 5,
+			height = 7,
+			style = "minimal",
+		})
+		vim.api.nvim_set_hl(0, "WinLabel", { fg = "black", bg = "white", bold = true })
+		vim.api.nvim_set_option_value("winhl", "Normal:WinLabel", { win = win })
+		table.insert(state.bufLabelHandles, win)
+	end
 end
 
 return windower
