@@ -1,5 +1,6 @@
 local state = require("buffer-me.state")
 local windower = require("buffer-me.windower")
+local utils = require("buffer-me.utils")
 local keybindings = require("buffer-me.keybindings")
 local bufferme = {}
 
@@ -328,7 +329,23 @@ function bufferme.close_buffer_me_search()
 end
 
 function bufferme.select_window_placement()
-	print("TODO(map) Implement me")
+	utils.build_windows_map()
+	windower.create_window_labels()
+
+	vim.schedule(function()
+		vim.ui.input({ prompt = "Select window: " }, function(input)
+			if input and tonumber(input) then
+				local winHandle = utils.windowMap[tonumber(input)]
+				local selectedBufHandle = getSelectedBufHandle(state.selectedRow)
+				vim.api.nvim_win_set_buf(winHandle, selectedBufHandle)
+			end
+
+			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back
+			-- to the original state of asking a user for an input?
+			windower.close_buffer_me()
+			utils.clear_window_map()
+		end)
+	end)
 end
 
 -- TODO(map) Remvoe after debugging

@@ -105,6 +105,7 @@ end
 
 function windower.close_buffer_me()
 	-- Clean up the state
+	-- TODO(map) Move this to the orchestration level of bufferme.lua
 	state.clear_selected_row()
 
 	-- Close the buffers and recreate them
@@ -114,6 +115,13 @@ function windower.close_buffer_me()
 	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
 	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
+
+	-- Close the labels if they are open. This should get cleaned up at some point
+	for _, win in ipairs(state.bufLabelHandles) do
+		vim.api.nvim_win_close(win, true)
+	end
+	-- TODO(map) Move this to the orchestration level of bufferme.lua
+	state.bufLabelHandles = {}
 end
 
 function windower.close_buffer_me_search()
@@ -205,7 +213,6 @@ function windower.re_render_buf_search_results()
 end
 
 function windower.create_window_labels()
-	utils.build_windows_map()
 	for idx, windowNum in ipairs(utils.windowMap) do
 		local buf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, utils.numberToAsciiMap[idx])
