@@ -348,13 +348,4 @@ function bufferme.select_window_placement()
 	end)
 end
 
--- TODO(map) Remvoe after debugging
-function bufferme.render()
-	windower.create_window_labels()
-end
-function bufferme.clear()
-	require("buffer-me.utils").clear_window_map()
-end
--- End TODO(map)
-
 return bufferme

@@ -20,7 +20,3 @@ command! -nargs=0 BufferToggleHotswap lua require("buffer-me").toggle_hotswap()
 command! -nargs=0 BufferOpenFirstHotswap lua require("buffer-me").open_first()
 command! -nargs=0 BufferOpenSecondHotswap lua require("buffer-me").open_second()
 command! -nargs=0 BufferOpenMostRecent lua require("buffer-me").toggle_last_buffer()
-
-" TODO(map) Remove after debugging is done
-command! -nargs=0 TestRender lua require("buffer-me").render()
-command! -nargs=0 TestClear lua require("buffer-me").clear()
