@@ -338,6 +338,7 @@ function bufferme.select_window_placement()
 				local winHandle = utils.windowMap[tonumber(input)]
 				local selectedBufHandle = getSelectedBufHandle(state.selectedRow)
 				vim.api.nvim_win_set_buf(winHandle, selectedBufHandle)
+				vim.api.nvim_set_current_win(winHandle)
 			end
 
 			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back
