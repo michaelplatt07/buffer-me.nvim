@@ -499,7 +499,7 @@ describe("bufferme.open_selected_search_result_h_split", function()
 		state.selected_search_result = 1
 
 		-- Make the call
-		bufferme.open_selected_serach_result_h_split()
+		bufferme.open_selected_search_result_h_split()
 
 		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
 		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)
@@ -510,5 +510,80 @@ describe("bufferme.open_selected_search_result_h_split", function()
 		assert.is_nil(state.bufListSearchResultBuff)
 		assert.is_equal(2, #vim.api.nvim_tabpage_list_wins(0))
 		assert.is_equal("col", vim.fn.winlayout()[1])
+	end)
+end)
+
+describe("bufferme.select_window_placement", function()
+	before_each(function()
+		package.loaded["buffer-me.bufferme"] = nil
+		package.loaded["buffer-me.state"] = nil
+		package.loaded["buffer-me.windower"] = nil
+		bufferme = require("buffer-me.bufferme")
+		state = require("buffer-me.state")
+		windower = require("buffer-me.windower")
+		utils.reset_nvim()
+	end)
+
+	it("Should open the selected buffer in the selected window and jump to that buffer", function()
+		-- Set up the curren buffer and selected buffer
+		local firstWin = vim.api.nvim_get_current_win()
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_set_current_buf(current_buf)
+		local selected_buf = vim.api.nvim_create_buf(false, true)
+		state.bufListBuf = vim.api.nvim_create_buf(false, true)
+		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
+
+		-- Split and make a new buffer
+		vim.cmd("vsplit")
+		local secondWin = vim.api.nvim_get_current_win()
+		local secondBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_set_current_buf(secondBuf)
+
+		-- Define state and assert the current windows have the correct buffers
+		state.bufList = {
+			current_buf,
+			selected_buf,
+			secondBuf,
+		}
+		state.selectedRow = 2
+		vim.api.nvim_set_current_win(secondWin)
+		assert.is_equal(vim.api.nvim_get_current_buf(), secondBuf)
+		vim.api.nvim_set_current_win(firstWin)
+		assert.is_equal(vim.api.nvim_get_current_buf(), current_buf)
+
+		-- Open the buf list and hotswap windows so they can be closed too
+		local bufWinListHandle = vim.api.nvim_open_win(state.bufListBuf, true, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+		state.hotswapWindowHandle = vim.api.nvim_open_win(state.hotswapBuf, false, {
+			relative = "editor",
+			row = 0,
+			col = 0,
+			width = 10,
+			height = 10,
+		})
+		vim.api.nvim_set_current_win(bufWinListHandle)
+
+		-- Make the call. Note that because the method call is wrapped in a schedule, this basically hijacks the
+		-- callback and ensures that the value 2 is passed back. Apparently this is the idiomatic way to do this?
+		vim.ui.input = function(opts, callback)
+			callback("2")
+		end
+		bufferme.select_window_placement()
+		vim.wait(100, function()
+			return false
+		end)
+
+		-- The second window should have the selected buffer and it should be the current window
+		-- TODO(map) Call the current window here and make sure it's equal to second window
+		assert.is_equal(vim.api.nvim_get_current_win(), secondWin)
+		assert.is_equal(vim.api.nvim_get_current_buf(), selected_buf)
+		-- The first window should still have the buffer
+		vim.api.nvim_set_current_win(firstWin)
+		assert.is_equal(vim.api.nvim_get_current_buf(), current_buf)
 	end)
 end)

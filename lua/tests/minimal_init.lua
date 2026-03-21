@@ -10,6 +10,8 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 vim.opt.rtp:append(".")
 vim.opt.rtp:append("../plenary.nvim")
 vim.opt.rtp:append("../buffer-me.lua")
+vim.o.splitright = true
+vim.o.splitbelow = true
 
 -- Load plugins
 vim.cmd("runtime! plugin/plenary.vim")

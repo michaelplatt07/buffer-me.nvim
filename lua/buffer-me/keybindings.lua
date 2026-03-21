@@ -8,6 +8,7 @@ local keybindings = {
 		key = "<Esc>",
 	},
 	open = { mode = "n", key = "o" },
+	openEnter = { mode = "n", key = "<CR>" },
 	delete = {
 		mode = "n",
 		key = "d",
@@ -29,6 +30,7 @@ local keybindings = {
 		key = "s",
 	},
 	go_to = { mode = "n", key = "g" },
+	select_placement = { mode = "n", key = "sp" },
 }
 
 local searchKeybindings = {
@@ -94,38 +96,39 @@ function keybindings.update_key_binding(func, custombind)
 	keybindings[func].key = custombind
 end
 
-function keybindings.delete_and_re_render_buf_list()
-	require("buffer-me.bufferme").remove_buf_current_selectded_buff()
-	require("buffer-me.windower").re_render_buf_list_lines()
-end
-
 function keybindings.map_keys(buf)
 	vim.keymap.set(keybindings.open.mode, keybindings.open.key, function()
-		require("buffer-me.windower").close_buffer_me()
-	end, { buffer = buf })
-	vim.keymap.set(keybindings.delete.mode, keybindings.delete.key, function()
-		require("buffer-me.windower").close_buffer_me()
-	end, { buffer = buf })
-	vim.keymap.set(keybindings.open_v_split.mode, keybindings.open_v_split.key, function()
 		require("buffer-me.bufferme").open_selected_buffer()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.open_h_split.mode, keybindings.open_h_split.key, function()
-		require("buffer-me.keybindings").delete_and_re_render_buf_list()
+	vim.keymap.set(keybindings.openEnter.mode, keybindings.openEnter.key, function()
+		require("buffer-me.bufferme").open_selected_buffer()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.set_first_hotswap.mode, keybindings.set_first_hotswap.key, function()
+	vim.keymap.set(keybindings.delete.mode, keybindings.delete.key, function()
+		require("buffer-me.bufferme").delete_and_re_render_buf_list()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.open_v_split.mode, keybindings.open_v_split.key, function()
 		require("buffer-me.bufferme").open_selected_buffer_v_split()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.set_second_hotswap.mode, keybindings.set_second_hotswap.key, function()
+	vim.keymap.set(keybindings.open_h_split.mode, keybindings.open_h_split.key, function()
 		require("buffer-me.bufferme").open_selected_buffer_h_split()
 	end, { buffer = buf })
+	vim.keymap.set(keybindings.set_first_hotswap.mode, keybindings.set_first_hotswap.key, function()
+		require("buffer-me.bufferme").set_first_hotswap()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.set_second_hotswap.mode, keybindings.set_second_hotswap.key, function()
+		require("buffer-me.bufferme").set_second_hotswap()
+	end, { buffer = buf })
 	vim.keymap.set(keybindings.go_to.mode, keybindings.go_to.key, function()
-		require("buffer-me.bufferme").set_first_hotswap_from_window()
+		require("buffer-me.bufferme").go_to_buffer()
 	end, { buffer = buf })
 	vim.keymap.set(keybindings.quit.mode, keybindings.quit.key, function()
-		require("buffer-me.bufferme").set_second_hotswap_from_window()
+		require("buffer-me.bufferme").close_buffer_me()
 	end, { buffer = buf })
 	vim.keymap.set(keybindings.quit_esc.mode, keybindings.quit_esc.key, function()
-		require("buffer-me.bufferme").go_to_buffer()
+		require("buffer-me.bufferme").close_buffer_me()
+	end, { buffer = buf })
+	vim.keymap.set(keybindings.select_placement.mode, keybindings.select_placement.key, function()
+		require("buffer-me.bufferme").select_window_placement()
 	end, { buffer = buf })
 end
 

@@ -1,5 +1,6 @@
 local state = require("buffer-me.state")
 local windower = require("buffer-me.windower")
+local utils = require("buffer-me.utils")
 local keybindings = require("buffer-me.keybindings")
 local bufferme = {}
 
@@ -188,6 +189,15 @@ function bufferme.move_search_selection_down()
 	windower.re_render_buf_search_results()
 end
 
+function bufferme.delete_and_re_render_buf_list()
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", true)
+	windower.remove_highlight(state.bufListBuf, state.selectedRow)
+	vim.api.nvim_buf_set_option(state.bufListBuf, "modifiable", false)
+
+	bufferme.remove_buf_current_selectded_buff()
+	windower.re_render_buf_list_lines()
+end
+
 function bufferme.delete_and_re_render_buf_search_list()
 	vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "modifiable", true)
 	windower.remove_highlight(state.bufListSearchResultBuff, state.selected_search_result)
@@ -310,8 +320,33 @@ function bufferme.open_second_hotswap()
 	end
 end
 
+function bufferme.close_buffer_me()
+	windower.close_buffer_me()
+end
+
 function bufferme.close_buffer_me_search()
 	windower.close_buffer_me_search()
+end
+
+function bufferme.select_window_placement()
+	utils.build_windows_map()
+	windower.create_window_labels()
+
+	vim.schedule(function()
+		vim.ui.input({ prompt = "Select window: " }, function(input)
+			if input and tonumber(input) then
+				local winHandle = utils.windowMap[tonumber(input)]
+				local selectedBufHandle = getSelectedBufHandle(state.selectedRow)
+				vim.api.nvim_win_set_buf(winHandle, selectedBufHandle)
+				vim.api.nvim_set_current_win(winHandle)
+			end
+
+			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back
+			-- to the original state of asking a user for an input?
+			windower.close_buffer_me()
+			utils.clear_window_map()
+		end)
+	end)
 end
 
 return bufferme

@@ -143,7 +143,7 @@ describe("state.remove_buf_by_num", function()
 		end
 
 		assert.is_equal(state.bufList[4], "place_holder_4")
-		state.remove_buf_by_num(4)
+		state.remove_buf_by_num(4, state.bufList)
 		assert.is_equal(state.bufList[4], "place_holder_5")
 	end)
 end)

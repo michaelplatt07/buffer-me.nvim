@@ -20,5 +20,5 @@ testintegration:
 	luacov
 
 
-testfull: clearcoverage testunit testintegration
+testfull: clearcoverage testintegration testunit 
 	
