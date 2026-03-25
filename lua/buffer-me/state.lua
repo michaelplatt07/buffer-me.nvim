@@ -52,6 +52,8 @@ function state.clean_up_buffers_on_close()
 	state.bufListSearch = nil
 	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
 	state.bufListSearchResultBuff = nil
+	state.searchBarWindowHandle = nil
+	state.searchResultsWindowHandle = nil
 end
 
 local function shiftAndInsertBuffer(buf_name)
@@ -238,6 +240,8 @@ end
 function state.clear_state()
 	state.bufList = {}
 	state.selectedRow = nil
+	state.selected_search_result = nil
+	state.buff_search_results = {}
 end
 
 local function fuzzy_path_score(query, path)

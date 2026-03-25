@@ -8,15 +8,11 @@ function bufferme.open_most_recent_buffer()
 	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
 end
 
-local function getSelectedBufHandle()
-	if state.selectedRow then
-		-- TODO(map) Swap out tracking the buffer list window for the same way the hotswap is being handled in state
-		local win_handle = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_close(win_handle, true)
-		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
-		return vim.fn.bufnr(state.bufList[state.selectedRow])
-	elseif state.currSelectedBuffer then
-		return vim.fn.bufnr(state.bufList[state.currSelectedBuffer])
+local function getSelectedBufHandle(rowNumber)
+	if next(state.bufList) ~= nil then
+		return vim.fn.bufnr(state.bufList[rowNumber])
+	elseif next(state.buff_search_results) ~= nil then
+		return vim.fn.bufnr(state.buff_search_results[rowNumber]["item"])
 	else
 		error("There was problem opening a buffer")
 	end
@@ -80,14 +76,14 @@ function bufferme.open_selected_search_result_h_split()
 end
 
 function bufferme.open_selected_buffer_v_split()
-	local selected_buf_handle = getSelectedBufHandle()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
 	vim.cmd("vsplit")
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_row()
 end
 
 function bufferme.open_selected_buffer_h_split()
-	local selected_buf_handle = getSelectedBufHandle()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
 	vim.cmd("split")
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 	state.clear_selected_row()
@@ -336,9 +332,19 @@ function bufferme.select_window_placement()
 		vim.ui.input({ prompt = "Select window: " }, function(input)
 			if input and tonumber(input) then
 				local winHandle = utils.windowMap[tonumber(input)]
-				local selectedBufHandle = getSelectedBufHandle(state.selectedRow)
-				vim.api.nvim_win_set_buf(winHandle, selectedBufHandle)
-				vim.api.nvim_set_current_win(winHandle)
+				local selectedBufHandle = nil
+				if state.selectedRow ~= nil then
+					selectedBufHandle = getSelectedBufHandle(state.selectedRow)
+				elseif state.selected_search_result ~= nil then
+					selectedBufHandle = getSelectedBufHandle(state.selected_search_result)
+				else
+					selectedBufHandle = nil
+				end
+
+				if selectedBufHandle ~= nil then
+					vim.api.nvim_win_set_buf(winHandle, selectedBufHandle)
+					vim.api.nvim_set_current_win(winHandle)
+				end
 			end
 
 			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back

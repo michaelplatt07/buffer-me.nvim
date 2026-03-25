@@ -106,15 +106,30 @@ end
 function windower.close_buffer_me()
 	-- Clean up the state
 	-- TODO(map) Move this to the orchestration level of bufferme.lua
-	state.clear_selected_row()
+	state.clear_state()
 
 	-- Close the buffers and recreate them
-	vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
+	if state.bufListBuf then
+		vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
+	end
 	state.bufListBuf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
-	vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
+	if state.hotswapBuf then
+		vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
+	end
 	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
+	if state.bufListSearch then
+		vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
+		state.bufListSearch = nil
+	end
+	if state.bufListSearchResultBuff then
+		vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
+		state.bufListSearchResultBuff = nil
+	end
+
+	state.searchBarWindowHandle = nil
+	state.searchResultsWindowHandle = nil
 
 	-- Close the labels if they are open. This should get cleaned up at some point
 	for _, win in ipairs(state.bufLabelHandles) do

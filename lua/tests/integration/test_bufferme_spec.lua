@@ -1,18 +1,25 @@
-local utils = require("tests.utils")
+local test_utils = require("tests.utils")
 
 local bufferme = nil
 local state = nil
 local windower = nil
+local utils = nil
+
+local function reset_packages()
+	package.loaded["buffer-me.bufferme"] = nil
+	package.loaded["buffer-me.state"] = nil
+	package.loaded["buffer-me.windower"] = nil
+	package.loaded["buffer-me.utils"] = nil
+	bufferme = require("buffer-me.bufferme")
+	state = require("buffer-me.state")
+	windower = require("buffer-me.windower")
+	utils = require("buffer-me.utils")
+end
 
 describe("bufferme.open_selected_buffer", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should open the selected buffer in the current window", function()
@@ -59,13 +66,8 @@ end)
 
 describe("bufferme.open_selected_search_result", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should open the selected search result buffer in the current window", function()
@@ -121,13 +123,8 @@ end)
 
 describe("bufferme.open_search_bar", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should open the search bar for the buffer list", function()
@@ -143,13 +140,8 @@ end)
 
 describe("bufferme.move_search_selection", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should move the search selection up", function()
@@ -233,13 +225,8 @@ end)
 
 describe("bufferme.open_buffers_list", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should only show the first three buffers despite having several in the list", function()
@@ -257,13 +244,8 @@ end)
 
 describe("bufferme.delete_and_re_render_buf_search_list", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Remove the buffer from the middle of the list and rerender the search dialog", function()
@@ -389,13 +371,8 @@ end)
 
 describe("bufferme.open_selected_search_result_v_split", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should open the buffer in a new vsplit", function()
@@ -452,13 +429,8 @@ end)
 
 describe("bufferme.open_selected_search_result_h_split", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it("Should open the buffer in a new vsplit", function()
@@ -515,13 +487,8 @@ end)
 
 describe("bufferme.select_window_placement", function()
 	before_each(function()
-		package.loaded["buffer-me.bufferme"] = nil
-		package.loaded["buffer-me.state"] = nil
-		package.loaded["buffer-me.windower"] = nil
-		bufferme = require("buffer-me.bufferme")
-		state = require("buffer-me.state")
-		windower = require("buffer-me.windower")
-		utils.reset_nvim()
+		reset_packages()
+		test_utils.reset_nvim()
 	end)
 
 	it(
@@ -639,8 +606,15 @@ describe("bufferme.select_window_placement", function()
 			vim.api.nvim_set_current_win(firstWin)
 			assert.is_equal(vim.api.nvim_get_current_buf(), current_buf)
 
-			-- Make the call
-			bufferme.open_selected_search_result()
+			-- Make the call. Note that because the method call is wrapped in a schedule, this basically hijacks the
+			-- callback and ensures that the value 2 is passed back. Apparently this is the idiomatic way to do this?
+			vim.ui.input = function(opts, callback)
+				callback("2")
+			end
+			bufferme.select_window_placement()
+			vim.wait(100, function()
+				return false
+			end)
 
 			-- Assert the current buffer is set correctly, the results are empty, and the search is closed
 			assert.is_equal(vim.api.nvim_get_current_buf(), buf_2)
