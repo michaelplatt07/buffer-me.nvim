@@ -74,6 +74,10 @@ local searchKeybindings = {
 		mode = "i",
 		key = "<C-s>",
 	},
+	select_placement = {
+		mode = "n",
+		key = "sp",
+	},
 	close = {
 		mode = "n",
 		key = "q",
@@ -222,6 +226,9 @@ function keybindings.map_search_keys(buf)
 	end, { buffer = buf, expr = true, noremap = true, silent = true })
 	vim.keymap.set(searchKeybindings.delete_n_mode.mode, searchKeybindings.delete_n_mode.key, function()
 		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.select_placement.mode, searchKeybindings.select_placement.key, function()
+		require("buffer-me.bufferme").select_window_placement()
 	end, { buffer = buf })
 end
 
