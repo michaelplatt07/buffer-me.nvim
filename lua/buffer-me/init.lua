@@ -1,7 +1,4 @@
 local bufferme = require("buffer-me.bufferme")
-local keybindings = require("buffer-me.keybindings")
-local state = require("buffer-me.state")
-local management = require("buffer-me.managment")
 local M = {}
 
 function M.open()
@@ -75,28 +72,7 @@ function M.toggle_last_buffer()
 end
 
 function M.setup(config)
-	if config ~= nil then
-		if config.keys ~= nil then
-			for func, custombind in pairs(config.keys) do
-				keybindings.update_key_binding(func, custombind)
-			end
-		end
-		if config.auto_manage ~= nil then
-			state.autoManage = config.auto_manage
-		end
-		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
-			state.recentToTop = config.most_recent_to_top
-		end
-		if config.max_recent_buffer_track ~= nil then
-			state.maxRecentBufferTrack = config.max_recent_buffer_track
-		end
-		if config.debug ~= nil and config.debug == true then
-			state.debug = config.debug
-		end
-	end
-
-	-- Create the bindings on the buffer events
-	management.create_bindings()
+	bufferme.setup_plugin(config)
 end
 
 return M

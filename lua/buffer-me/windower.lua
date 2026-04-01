@@ -104,47 +104,28 @@ function windower.render_hotswap_lines()
 end
 
 function windower.close_buffer_me()
-	-- Clean up the state
-	-- TODO(map) Move this to the orchestration level of bufferme.lua
-	state.clear_state()
-
-	-- Close the buffers and recreate them
-	if state.bufListBuf then
-		vim.api.nvim_buf_delete(state.bufListBuf, { force = true })
+	if state.bufListWindowHandle then
+		vim.api.nvim_win_close(state.bufListWindowHandle, true)
 	end
-	state.bufListBuf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
-	if state.hotswapBuf then
-		vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
+	if state.hotswapWindowHandle then
+		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
 	end
-	state.hotswapBuf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
-	if state.bufListSearch then
-		vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
-		state.bufListSearch = nil
+	if state.searchBarWindowHandle then
+		vim.api.nvim_win_close(state.searchBarWindowHandle, true)
 	end
-	if state.bufListSearchResultBuff then
-		vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
-		state.bufListSearchResultBuff = nil
+	if state.searchResultsWindowHandle then
+		vim.api.nvim_win_close(state.searchResultsWindowHandle, true)
 	end
-
-	state.searchBarWindowHandle = nil
-	state.searchResultsWindowHandle = nil
 
 	-- Close the labels if they are open. This should get cleaned up at some point
 	for _, win in ipairs(state.bufLabelHandles) do
 		vim.api.nvim_win_close(win, true)
 	end
-	-- TODO(map) Move this to the orchestration level of bufferme.lua
-	state.bufLabelHandles = {}
 end
 
 function windower.close_buffer_me_search()
-	-- Reset the search results
-	state.buff_search_results = {}
-
-	-- Remove the reference to the old results window since it is going to be destroyed
-	state.searchResultsWindowHandle = nil
+	-- Clear the state
+	state.clear_state()
 
 	-- Close the buffers
 	state.clean_up_buffers_on_close()

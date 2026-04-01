@@ -1,6 +1,8 @@
 local state = require("buffer-me.state")
 local management = {}
 
+local managementBuffGroup = vim.api.nvim_create_augroup("bufferme.buffer.tracking", { clear = true })
+
 local function get_buff_watch_flags()
 	local ignoreTypes = { "nofile" }
 	local bufferModifiable = vim.api.nvim_buf_get_option(0, "modifiable")
@@ -19,6 +21,7 @@ end
 function management.create_bindings()
 	-- Handle any pre-processing of the buffer needed
 	vim.api.nvim_create_autocmd("BufLeave", {
+		group = managementBuffGroup,
 		pattern = "*",
 		callback = function()
 			-- Get additional flags to apply for later logic
@@ -31,6 +34,7 @@ function management.create_bindings()
 	})
 
 	vim.api.nvim_create_autocmd("BufEnter", {
+		group = managementBuffGroup,
 		pattern = "*",
 		callback = function()
 			-- Get additional flags to apply for later logic
@@ -55,6 +59,7 @@ function management.create_bindings()
 
 	-- Trigger on opening a new file
 	vim.api.nvim_create_autocmd("BufNewFile", {
+		group = managementBuffGroup,
 		pattern = "*",
 		callback = function()
 			-- Get additional flags to apply for later logic
@@ -70,6 +75,7 @@ function management.create_bindings()
 
 	-- Trigger on reading a file for the first time and loading it into memory
 	vim.api.nvim_create_autocmd("BufReadPost", {
+		group = managementBuffGroup,
 		pattern = "*",
 		callback = function()
 			-- Get additional flags to apply for later logic

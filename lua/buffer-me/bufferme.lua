@@ -2,6 +2,7 @@ local state = require("buffer-me.state")
 local windower = require("buffer-me.windower")
 local utils = require("buffer-me.utils")
 local keybindings = require("buffer-me.keybindings")
+local management = require("buffer-me.managment")
 local bufferme = {}
 
 function bufferme.open_most_recent_buffer()
@@ -58,8 +59,9 @@ function bufferme.open_selected_search_result_v_split()
 	local selected_buf_handle = getSelectedSearchResultBufHandle()
 	vim.cmd("vsplit")
 	vim.api.nvim_set_current_buf(selected_buf_handle)
-	state.clear_selected_search_result()
+	state.clear_state()
 	windower.close_buffer_me_search()
+	state.clean_up_buffers_on_close()
 end
 
 function bufferme.open_selected_search_result_h_split()
@@ -123,7 +125,7 @@ function bufferme.open_buffers_list()
 	windower.render_hotswap_lines()
 
 	-- Set the lines for the buffer list
-	windower.create_buf_list_window()
+	state.bufListWindowHandle = windower.create_buf_list_window()
 	windower.render_buf_list_lines()
 
 	-- Handle an empty selected row for the first time
@@ -350,9 +352,39 @@ function bufferme.select_window_placement()
 			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back
 			-- to the original state of asking a user for an input?
 			windower.close_buffer_me()
+			state.clean_up_buffers_on_close()
+			state.clear_state()
 			utils.clear_window_map()
 		end)
 	end)
+end
+
+function bufferme.setup_plugin(config)
+	-- Always clear before we load up so we are not doubling down on settings
+	state.clear_state()
+
+	if config ~= nil then
+		if config.keys ~= nil then
+			for func, custombind in pairs(config.keys) do
+				keybindings.update_key_binding(func, custombind)
+			end
+		end
+		if config.auto_manage ~= nil then
+			state.autoManage = config.auto_manage
+		end
+		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
+			state.recentToTop = config.most_recent_to_top
+		end
+		if config.max_recent_buffer_track ~= nil then
+			state.maxRecentBufferTrack = config.max_recent_buffer_track
+		end
+		if config.debug ~= nil and config.debug == true then
+			state.debug = config.debug
+		end
+	end
+
+	-- Create the bindings on the buffer events
+	management.create_bindings()
 end
 
 return bufferme

@@ -2,26 +2,31 @@ local state = {
 	-- Configs
 	autoManage = false,
 	recentToTop = false,
+	maxRecentBufferTrack = 10, -- Default to 10 but this can be set in configs
 
-	-- State management
+	-- Buffer management
 	bufListBuf = nil,
 	hotswapBuf = nil,
-	hotswapWindowHandle = nil,
-	bufListSearch = nil,
 	bufListSearchResultBuff = nil,
+	bufListSearch = nil,
+
+	-- Window management
+	bufListWindowHandle = nil,
+	hotswapWindowHandle = nil,
 	searchBarWindowHandle = nil,
 	searchResultsWindowHandle = nil,
+	bufLabelHandles = {},
+
+	-- State management
 	buff_search_results = {},
 	selected_search_result = nil,
 	bufList = {},
-	maxRecentBufferTrack = 10, -- Default to 10 but this can be set in configs
 	selectedRow = nil,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
-	bufLabelHandles = {},
 }
 
 function state.init_required_buffers()
@@ -45,15 +50,6 @@ function state.init_required_buffers()
 		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "buftype", "nofile")
 	end
-end
-
-function state.clean_up_buffers_on_close()
-	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
-	state.bufListSearch = nil
-	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
-	state.bufListSearchResultBuff = nil
-	state.searchBarWindowHandle = nil
-	state.searchResultsWindowHandle = nil
 end
 
 local function shiftAndInsertBuffer(buf_name)
@@ -229,21 +225,6 @@ function state.remove_selected_buf_from_list()
 	end
 end
 
-function state.clear_selected_row()
-	state.selectedRow = nil
-end
-
-function state.clear_selected_search_result()
-	state.selected_search_result = nil
-end
-
-function state.clear_state()
-	state.bufList = {}
-	state.selectedRow = nil
-	state.selected_search_result = nil
-	state.buff_search_results = {}
-end
-
 local function fuzzy_path_score(query, path)
 	query = query:lower()
 	path = path:lower()
@@ -314,6 +295,54 @@ end
 
 function state.search_buffers(buf_search_term)
 	state.buff_search_results = fuzzy_substr(buf_search_term, state.bufList)
+end
+
+function state.clear_selected_row()
+	state.selectedRow = nil
+end
+
+function state.clear_selected_search_result()
+	state.selected_search_result = nil
+end
+
+function state.clear_state()
+	-- TODO(map) Should check if there is a good way to loop over values and apply nil or {} conditionally
+	state.bufListBuf = nil
+	state.hotswapBuf = nil
+	state.bufListSearchResultBuff = nil
+	state.bufListSearch = nil
+	state.hotswapWindowHandle = nil
+	state.searchBarWindowHandle = nil
+	state.searchResultsWindowHandle = nil
+	state.bufLabelHandles = {}
+	state.buff_search_results = {}
+	state.selected_search_result = nil
+	state.bufList = {}
+	state.selectedRow = nil
+	state.currSelectedBuffer = nil
+	state.firstBufHotswap = nil
+	state.secondBufHotswap = nil
+	state.lastExitedBuffer = nil
+	state.mostRecentBuffer = nil
+end
+
+function state.clean_up_buffers_on_close()
+	if state.bufListSearch then
+		vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
+	end
+	if state.hotswapBuf then
+		vim.api.nvim_buf_delete(state.hotswapBuf, { force = true })
+	end
+	if state.bufListSearchResultBuff then
+		vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
+	end
+	if state.bufListSearch then
+		vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
+	end
+	state.bufListBuf = nil
+	state.hotswapBuf = nil
+	state.bufListSearchResultBuff = nil
+	state.bufListSearch = nil
 end
 
 return state

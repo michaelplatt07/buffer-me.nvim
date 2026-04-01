@@ -54,10 +54,11 @@ describe("buffer-me.windower", function()
 
 			-- Open the buffer-me window
 			state.init_required_buffers()
-			windower.create_buf_list_window()
+			state.bufListWindowHandle = windower.create_buf_list_window()
+			state.hotswapWindowHandle = windower.create_hot_swap_window()
 
 			-- Be sure there are more windows open than the two original
-			assert.is_equal(#vim.api.nvim_list_wins(), 3)
+			assert.is_equal(#vim.api.nvim_list_wins(), 4)
 
 			-- Call to close the windows
 			windower.close_buffer_me()
@@ -74,14 +75,15 @@ describe("buffer-me.windower", function()
 
 			-- Open the buffer-me window
 			state.init_required_buffers()
-			windower.create_buf_list_window()
+			state.bufListWindowHandle = windower.create_buf_list_window()
+			state.hotswapWindowHandle = windower.create_hot_swap_window()
 
 			-- Open the labels
 			utils.build_windows_map()
 			windower.create_window_labels()
 
 			-- Be sure there are more windows open than the two original
-			assert.is_equal(#vim.api.nvim_list_wins(), 5)
+			assert.is_equal(#vim.api.nvim_list_wins(), 6)
 
 			-- Call to close the windows
 			windower.close_buffer_me()
