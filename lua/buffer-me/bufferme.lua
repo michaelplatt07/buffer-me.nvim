@@ -21,9 +21,10 @@ end
 
 function bufferme.open_selected_buffer()
 	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
-	vim.api.nvim_set_current_buf(selected_buf_handle)
+    -- Close the windows first so the appropriate interaction happens with actual buffers and not plugin buffers
 	windower.close_buffer_me()
 	state.clear_state()
+	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
 local function getSelectedSearchResultBufHandle()
