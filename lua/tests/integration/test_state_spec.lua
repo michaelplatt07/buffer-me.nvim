@@ -6,13 +6,8 @@ describe("state.init_required_buffers", function()
 		state = require("buffer-me.state")
 	end)
 
-	it("Should initialize the required buffers", function()
-		assert.is_nil(state.bufListBuf)
-		assert.is_nil(state.hotswapBuf)
-
-		state.init_required_buffers()
-
-		assert.is_not_nil(state.bufListBuf)
-		assert.is_not_nil(state.hotswapBuf)
-	end)
+	-- TODO(map) Likely the only integration tests needed are for things that make actual NVim API calls
+	-- append_to_buf_list
+	-- set_first_hotswap_from_window
+	--set_second_hotswap_from_window
 end)

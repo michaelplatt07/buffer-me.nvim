@@ -1,17 +1,23 @@
 local testUtils = require("tests.utils")
 
-describe("buffer-me.windower", function()
-	local windower
-	local utils
-	local state
+local windower
+local utils
+local state
 
+local function reset_packages()
+	package.loaded["buffer-me.windower"] = nil
+	package.loaded["buffer-me.utils"] = nil
+	package.loaded["buffer-me.state"] = nil
+	windower = require("buffer-me.windower")
+	utils = require("buffer-me.utils")
+	state = require("buffer-me.state")
+end
+
+-- TODO(map) Write test for re_render_buf_list_lines
+
+describe("buffer-me.windower", function()
 	before_each(function()
-		package.loaded["buffer-me.windower"] = nil
-		package.loaded["buffer-me.utils"] = nil
-		package.loaded["buffer-me.state"] = nil
-		windower = require("buffer-me.windower")
-		utils = require("buffer-me.utils")
-		state = require("buffer-me.state")
+		reset_packages()
 		testUtils.reset_nvim()
 	end)
 
@@ -26,7 +32,7 @@ describe("buffer-me.windower", function()
 
 			-- Assert the table is correct
 			assert.same(utils.windowMap, { winOne })
-			assert.is_equal(#state.bufLabelHandles, 1)
+			assert.is_equal(#windower.bufLabelHandles, 1)
 		end)
 
 		it("Should build the table of the window numbers to their labels for two windows", function()
@@ -41,7 +47,7 @@ describe("buffer-me.windower", function()
 
 			-- Assert the table is correct
 			assert.same(utils.windowMap, { winOne, winTwo })
-			assert.is_equal(#state.bufLabelHandles, 2)
+			assert.is_equal(#windower.bufLabelHandles, 2)
 		end)
 	end)
 
@@ -53,9 +59,9 @@ describe("buffer-me.windower", function()
 			local winTwo = vim.api.nvim_get_current_win()
 
 			-- Open the buffer-me window
-			state.init_required_buffers()
-			state.bufListWindowHandle = windower.create_buf_list_window()
-			state.hotswapWindowHandle = windower.create_hot_swap_window()
+			windower.init_required_buffers()
+			windower.create_buf_list_window()
+			windower.create_hot_swap_window()
 
 			-- Be sure there are more windows open than the two original
 			assert.is_equal(#vim.api.nvim_list_wins(), 4)
@@ -74,9 +80,9 @@ describe("buffer-me.windower", function()
 			local winTwo = vim.api.nvim_get_current_win()
 
 			-- Open the buffer-me window
-			state.init_required_buffers()
-			state.bufListWindowHandle = windower.create_buf_list_window()
-			state.hotswapWindowHandle = windower.create_hot_swap_window()
+			windower.init_required_buffers()
+			windower.create_buf_list_window()
+			windower.create_hot_swap_window()
 
 			-- Open the labels
 			utils.build_windows_map()
