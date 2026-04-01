@@ -270,16 +270,12 @@ function state.clear_selected_search_result()
 end
 
 function state.clear_state()
-	-- TODO(map) Should check if there is a good way to loop over values and apply nil or {} conditionally
+	-- There are certain fields we don't want to reset such as the bufList which tracks the buffers and hotswaps and
+	-- most recent buffers
 	state.buff_search_results = {}
 	state.selected_search_result = nil
-	state.bufList = {}
 	state.selectedRow = nil
 	state.currSelectedBuffer = nil
-	state.firstBufHotswap = nil
-	state.secondBufHotswap = nil
-	state.lastExitedBuffer = nil
-	state.mostRecentBuffer = nil
 end
 
 return state
