@@ -154,7 +154,7 @@ function bufferme.open_buffers_list()
 	end
 
 	-- Initialize key bindings
-	keybindings.map_keys(state.bufListBuf)
+	keybindings.map_keys(windower.bufListBuf)
 end
 
 function bufferme.open_search_bar()
