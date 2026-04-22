@@ -16,9 +16,6 @@ local function reset_packages()
 	utils = require("buffer-me.utils")
 end
 
--- TODO(map) Write test for delete_and_re_render_buf_list
--- TODO(map) Write test for create_buff_search_results_window_if_not_exists for ath of window exists already
-
 describe("bufferme.open_selected_buffer", function()
 	before_each(function()
 		reset_packages()
@@ -64,6 +61,97 @@ describe("bufferme.open_selected_buffer", function()
 		assert.is_equal(vim.api.nvim_get_current_buf(), selected_buf)
 		--State should have cleared the selected row
 		assert.is_equal(state.selectedRow, nil)
+	end)
+end)
+
+describe("bufferme.open_selected_buffer_at_idx", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should open the selected buffer in the current window", function()
+		-- Mock the getchar so we can send keys along
+		vim.fn.getchar = function()
+			return string.byte("1")
+		end
+
+		-- Set up the curren buffer and selected buffer
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		local newBuf = vim.api.nvim_create_buf(false, true)
+
+		-- Define state and assert the current buffer is set
+		vim.api.nvim_set_current_buf(current_buf)
+		assert.is_equal(vim.api.nvim_get_current_buf(), current_buf)
+
+		-- Open the buf list and hotswap windows so they can be closed too
+		windower.init_required_buffers()
+		state.bufList = { newBuf }
+
+		-- Make the call
+		bufferme.go_to_buffer()
+
+		-- The now current buffer should be the selected buffer
+		assert.is_equal(vim.api.nvim_get_current_buf(), newBuf)
+		-- The windows and buffers have been cleaned up
+		assert.is_nil(windower.bufListWindowHandle)
+		assert.is_nil(windower.hotswapWindowHandle)
+	end)
+
+	it("Should exit early and not update the current buffer when Q is pressed", function()
+		-- Mock the getchar so we can send keys along
+		vim.fn.getchar = function()
+			return string.byte("q")
+		end
+
+		-- Set up the curren buffer and selected buffer
+		local currentBuf = vim.api.nvim_create_buf(false, true)
+		local newBuf = vim.api.nvim_create_buf(false, true)
+
+		-- Define state and assert the current buffer is set
+		vim.api.nvim_set_current_buf(currentBuf)
+		assert.is_equal(vim.api.nvim_get_current_buf(), currentBuf)
+
+		-- Open the buf list and hotswap windows so they can be closed too
+		windower.init_required_buffers()
+		state.bufList = { newBuf }
+
+		-- Make the call
+		bufferme.go_to_buffer()
+
+		-- The now current buffer should be the selected buffer
+		assert.is_equal(vim.api.nvim_get_current_buf(), currentBuf)
+		-- The windows and buffers have been cleaned up
+		assert.is_nil(windower.bufListWindowHandle)
+		assert.is_nil(windower.hotswapWindowHandle)
+	end)
+
+	it("Should return when a buffer number is not set or valid", function()
+		-- Mock the getchar so we can send keys along
+		vim.fn.getchar = function()
+			return string.byte("8")
+		end
+
+		-- Set up the curren buffer and selected buffer
+		local currentBuf = vim.api.nvim_create_buf(false, true)
+		local newBuf = vim.api.nvim_create_buf(false, true)
+
+		-- Define state and assert the current buffer is set
+		vim.api.nvim_set_current_buf(currentBuf)
+		assert.is_equal(vim.api.nvim_get_current_buf(), currentBuf)
+
+		-- Open the buf list and hotswap windows so they can be closed too
+		windower.init_required_buffers()
+		state.bufList = { newBuf }
+
+		-- Make the call
+		bufferme.go_to_buffer()
+
+		-- The now current buffer should be the selected buffer
+		assert.is_equal(vim.api.nvim_get_current_buf(), currentBuf)
+		-- The windows and buffers have been cleaned up
+		assert.is_nil(windower.bufListWindowHandle)
+		assert.is_nil(windower.hotswapWindowHandle)
 	end)
 end)
 
@@ -248,6 +336,117 @@ describe("bufferme.open_buffers_list", function()
 	end)
 end)
 
+describe("bufferme.delete_and_re_render_buf_list", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Remove the buffer from the middle of the list and rerender the search dialog", function()
+		-- Set up the required buffers
+		windower.init_required_buffers()
+		state.bufList = { "Line 1", "Line 2", "Line 3" }
+		vim.api.nvim_buf_set_lines(windower.bufListBuf, 0, #state.bufList, false, state.bufList)
+
+		--Set up the state to be ready to delete the buffer in the middle of the list
+		state.selectedRow = 2
+		windower.highlight_current_mark(windower.bufListBuf, state.selectedRow)
+		local highlights =
+			vim.api.nvim_buf_get_extmarks(windower.bufListBuf, windower.ns_search_cursor, 0, -1, { details = true })
+		assert.is_equal(highlights[1][2] + 1, state.selectedRow)
+
+		-- Make the call
+		bufferme.delete_and_re_render_buf_list()
+
+		-- Assert everything was updated
+		highlights =
+			vim.api.nvim_buf_get_extmarks(windower.bufListBuf, windower.ns_search_cursor, 0, -1, { details = true })
+		assert.is_equal(state.selectedRow, 2)
+		assert.same(state.bufList, { "Line 1", "Line 3" })
+		assert.is_equal(highlights[1][2] + 1, state.selectedRow)
+	end)
+
+	-- it("Remove the buffer from the top of the list and rerender the search dialog", function()
+	-- 	-- Set up the required buffers
+	-- 	windower.init_required_buffers()
+	-- 	state.buff_search_results = { "Line 1", "Line 2", "Line 3" }
+	-- 	vim.api.nvim_buf_set_lines(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		0,
+	-- 		#state.buff_search_results,
+	-- 		false,
+	-- 		state.buff_search_results
+	-- 	)
+	--
+	-- 	--Set up the state to be ready to delete the buffer at the top of the list
+	-- 	state.selected_search_result = 1
+	-- 	windower.highlight_current_mark(windower.bufListSearchResultBuf, state.selected_search_result)
+	-- 	local highlights = vim.api.nvim_buf_get_extmarks(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		windower.ns_search_cursor,
+	-- 		0,
+	-- 		-1,
+	-- 		{ details = true }
+	-- 	)
+	-- 	assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	--
+	-- 	-- Make the call
+	-- 	bufferme.delete_and_re_render_buf_search_list()
+	--
+	-- 	-- Assert everything was updated
+	-- 	highlights = vim.api.nvim_buf_get_extmarks(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		windower.ns_search_cursor,
+	-- 		0,
+	-- 		-1,
+	-- 		{ details = true }
+	-- 	)
+	-- 	assert.is_equal(state.selected_search_result, 1)
+	-- 	assert.same(state.buff_search_results, { "Line 2", "Line 3" })
+	-- 	assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	-- end)
+
+	-- it("Remove the buffer from the bottom of the list and rerender the search dialog", function()
+	-- 	-- Set up the required buffers
+	-- 	windower.init_required_buffers()
+	-- 	state.buff_search_results = { "Line 1", "Line 2", "Line 3" }
+	-- 	vim.api.nvim_buf_set_lines(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		0,
+	-- 		#state.buff_search_results,
+	-- 		false,
+	-- 		state.buff_search_results
+	-- 	)
+	--
+	-- 	--Set up the state to be ready to delete the buffer in the middle of the list
+	-- 	state.selected_search_result = 3
+	-- 	windower.highlight_current_mark(windower.bufListSearchResultBuf, state.selected_search_result)
+	-- 	local highlights = vim.api.nvim_buf_get_extmarks(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		windower.ns_search_cursor,
+	-- 		0,
+	-- 		-1,
+	-- 		{ details = true }
+	-- 	)
+	-- 	assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	--
+	-- 	-- Make the call
+	-- 	bufferme.delete_and_re_render_buf_search_list()
+	--
+	-- 	-- Assert everything was updated
+	-- 	highlights = vim.api.nvim_buf_get_extmarks(
+	-- 		windower.bufListSearchResultBuf,
+	-- 		windower.ns_search_cursor,
+	-- 		0,
+	-- 		-1,
+	-- 		{ details = true }
+	-- 	)
+	-- 	assert.is_equal(state.selected_search_result, 2)
+	-- 	assert.same(state.buff_search_results, { "Line 1", "Line 2" })
+	-- 	assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	-- end)
+end)
+
 describe("bufferme.delete_and_re_render_buf_search_list", function()
 	before_each(function()
 		reset_packages()
@@ -372,6 +571,101 @@ describe("bufferme.delete_and_re_render_buf_search_list", function()
 		assert.is_equal(state.selected_search_result, 2)
 		assert.same(state.buff_search_results, { "Line 1", "Line 2" })
 		assert.is_equal(highlights[1][2] + 1, state.selected_search_result)
+	end)
+end)
+
+describe("bufferme.open_selected_buffer_v_split", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should open the buffer in a new vsplit", function()
+		-- Ensure there is only one pane to start
+		assert.is_equal(1, #vim.api.nvim_tabpage_list_wins(0))
+
+		-- Set up the current buffer and selected buffer
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		local buf_1 = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(buf_1, "test-buffer")
+
+		-- Open the buf search and search results windows
+		windower.init_required_buffers()
+		windower.create_buf_list_window()
+		windower.create_hot_swap_window()
+
+		-- Define state and set the search results to be accessed
+		state.bufList = {
+			buf_1,
+		}
+		-- Set the current buffer
+		vim.api.nvim_set_current_buf(current_buf)
+		-- Pick a buffer to open
+		state.selectedRow = 1
+
+		-- Make the call
+		bufferme.open_selected_buffer_v_split()
+
+		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)
+		assert.is_nil(state.selectedRow)
+		assert.are.same(state.bufList, { buf_1 })
+		assert.is_nil(windower.bufListWindowHandle)
+		assert.is_nil(windower.hotswapWindowHandle)
+		assert.is_nil(windower.bufListBuf)
+		assert.is_nil(windower.hotswapBuf)
+		assert.is_equal(2, #vim.api.nvim_tabpage_list_wins(0))
+		assert.is_equal("row", vim.fn.winlayout()[1])
+	end)
+end)
+
+describe("bufferme.open_selected_buffer_h_split", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should open the buffer in a new vsplit", function()
+		-- Ensure there is only one pane to start
+		assert.is_equal(1, #vim.api.nvim_tabpage_list_wins(0))
+
+		-- Set up the curren buffer and selected buffer
+		local current_buf = vim.api.nvim_create_buf(false, true)
+		local buf_1 = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(buf_1, "test-buffer")
+
+		-- Open the buf search and search results windows
+		windower.init_required_buffers()
+		windower.create_buff_search_bar()
+		windower.create_buff_search_results_window_if_not_exists()
+
+		-- Open the buf search and search results windows
+		windower.init_required_buffers()
+		windower.create_buf_list_window()
+		windower.create_hot_swap_window()
+
+		-- Define state and set the search results to be accessed
+		state.bufList = {
+			buf_1,
+		}
+		-- Set the current buffer
+		vim.api.nvim_set_current_buf(current_buf)
+		-- Pick a buffer to open
+		state.selectedRow = 1
+
+		-- Make the call
+		bufferme.open_selected_buffer_h_split()
+
+		-- Assert the current buffer is set correctly, the results are empty, and the search is closed
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf_1)
+		assert.is_nil(state.selectedRow)
+		assert.are.same(state.bufList, { buf_1 })
+		assert.is_nil(windower.bufListWindowHandle)
+		assert.is_nil(windower.hotswapWindowHandle)
+		assert.is_nil(windower.bufListBuf)
+		assert.is_nil(windower.hotswapBuf)
+		assert.is_equal(2, #vim.api.nvim_tabpage_list_wins(0))
+		assert.is_equal("col", vim.fn.winlayout()[1])
 	end)
 end)
 
@@ -586,4 +880,328 @@ describe("bufferme.select_window_placement", function()
 			assert.is_nil(windower.bufListSearchResultBuff)
 		end
 	)
+end)
+
+describe("bufferme.add_buf", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should add a buffer to the buffers list", function()
+		-- Set up the current buffer and selected buffer
+		local currentBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(currentBuf, "test-name")
+		vim.api.nvim_set_current_buf(currentBuf)
+
+		-- Define state
+		state.bufList = {}
+
+		-- Make the call
+		bufferme.add_buf()
+
+		-- Assert the buffer was added
+		assert.is_same(state.bufList, { "test-name" })
+	end)
+
+	it("Should add all buffers to the buffers list", function()
+		-- Set up the current buffer and selected buffer
+		local currentBuf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(currentBuf, "test-name")
+		local additionalBufOne = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(additionalBufOne, "test-name-1")
+		local additionalBufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(additionalBufTwo, "test-name-2")
+		local additionalBufThree = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(additionalBufThree, "test-name-3")
+		vim.api.nvim_set_current_buf(currentBuf)
+
+		-- Define state
+		state.bufList = {}
+
+		-- Make the call
+		bufferme.add_all_buffers()
+
+		-- Assert the buffer was added
+		assert.is_same(state.bufList, { "test-name-3", "test-name-2", "test-name-1", "test-name" })
+	end)
+end)
+
+describe("bufferme.remove_buf_current_selected_buff", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should remove the buffer given the current cursor position", function()
+		-- Set up the current buffer and selected buffer
+		local currentBuf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_name(currentBuf, "test-name")
+		vim.api.nvim_set_current_buf(currentBuf)
+
+		-- Define state
+		windower.init_required_buffers()
+		windower.create_buf_list_window()
+		state.bufList = { "test-name" }
+		vim.api.nvim_set_current_win(windower.bufListWindowHandle)
+
+		-- Make the call
+		bufferme.remove_buf_current_selected_buff()
+
+		-- Assert the buffer was added
+		assert.is_same(state.bufList, {})
+	end)
+end)
+
+describe("bufferme.clear_buffer_list", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should clear the state", function()
+		-- Set up the state
+		state.buff_search_results = { { item = "One", value = 3 } }
+		state.selected_search_result = 3
+		state.selectedRow = 1
+		state.currSelectedBuffer = 2
+
+		-- Make the call
+		bufferme.clear_buffer_list()
+
+		-- Assert everything was cleared
+		assert.is_same(state.buff_search_results, {})
+		assert.is_nil(state.selected_search_result)
+		assert.is_nil(state.selectedRow)
+		assert.is_nil(state.currSelectedBuffer)
+	end)
+end)
+
+describe("bufferme.set_hotswap", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should set the first hotswap when outside the window", function()
+		-- Set up the buffer and assert the state doesn't have the hotswap set
+		local buf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		assert.is_nil(state.firstBufHotswap)
+
+		-- Make the call
+		bufferme.set_first_hotswap()
+
+		-- Assert the hotswap is set
+		assert.is_equal(state.firstBufHotswap, buf)
+	end)
+
+	it("Should set the second hotswap when outside the window", function()
+		-- Set up the buffer and assert the state doesn't have the hotswap set
+		local buf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		assert.is_nil(state.secondBufHotswap)
+
+		-- Make the call
+		bufferme.set_second_hotswap()
+
+		-- Assert the hotswap is set
+		assert.is_equal(state.secondBufHotswap, buf)
+	end)
+
+	it("Should set the first hotswap and rerender when set in the buffer window", function()
+		-- Set up the state
+		local bufOne = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufOne, "bufOne")
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufTwo, "bufTwo")
+		local bufThree = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufThree, "bufThree")
+		state.bufList = { "bufOne", "bufTwo", "bufThree" }
+		state.selectedRow = 2
+
+		-- Open the windows
+		bufferme.open_buffers_list()
+
+		-- Assert the hotswap window has nothing
+		assert.is_same(vim.api.nvim_buf_get_lines(windower.hotswapBuf, 0, 2, false), { "1: nil", "2: nil" })
+
+		-- Make the call
+		bufferme.set_first_hotswap_from_window()
+
+		-- Assert the window was updated
+		local fullPath = vim.api.nvim_buf_get_name(bufTwo)
+		assert.is_same(
+			vim.api.nvim_buf_get_lines(windower.hotswapBuf, 0, 2, false),
+			{ string.format("1: %s", fullPath), "2: nil" }
+		)
+	end)
+
+	it("Should set the second hotswap and rerender when set in the buffer window", function()
+		-- Set up the state
+		local bufOne = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufOne, "bufOne")
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufTwo, "bufTwo")
+		local bufThree = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_buf_set_name(bufThree, "bufThree")
+		state.bufList = { "bufOne", "bufTwo", "bufThree" }
+		state.selectedRow = 3
+
+		-- Open the windows
+		bufferme.open_buffers_list()
+
+		-- Assert the hotswap window has nothing
+		assert.is_same(vim.api.nvim_buf_get_lines(windower.hotswapBuf, 0, 2, false), { "1: nil", "2: nil" })
+
+		-- Make the call
+		bufferme.set_second_hotswap_from_window()
+
+		-- Assert the window was updated
+		local fullPath = vim.api.nvim_buf_get_name(bufThree)
+		assert.is_same(
+			vim.api.nvim_buf_get_lines(windower.hotswapBuf, 0, 2, false),
+			{ "1: nil", string.format("2: %s", fullPath) }
+		)
+	end)
+end)
+
+describe("bufferme.toggle_hotswap", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should not do anything given there are no first or second hotswaps set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		state.firstBufHotswap = nil
+		state.secondBufHotswap = nil
+
+		-- Make the call
+		bufferme.toggle_hotswap_buffers()
+
+		-- Assert the buffer is the same
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf)
+	end)
+
+	it("Should toggle to the first hotswap when the second is not set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		state.firstBufHotswap = bufTwo
+		state.secondBufHotswap = nil
+
+		-- Make the call
+		bufferme.toggle_hotswap_buffers()
+
+		-- Assert the toggle went to the new buffer from the first hotswap
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
+
+	it("Should toggle to the second hotswap when the first is not set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		state.firstBufHotswap = nil
+		state.secondBufHotswap = bufTwo
+
+		-- Make the call
+		bufferme.toggle_hotswap_buffers()
+
+		-- Assert the toggle went to the new buffer from the first hotswap
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
+
+	it("Should toggle to the second hotswap if on the first hotswap", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		state.firstBufHotswap = buf
+		state.secondBufHotswap = bufTwo
+
+		-- Make the call
+		bufferme.toggle_hotswap_buffers()
+
+		-- Assert the toggle went to the new buffer from the second hotswap
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
+
+	it("Should toggle to the first hotswap if on the second hotswap", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+		state.firstBufHotswap = bufTwo
+		state.secondBufHotswap = buf
+
+		-- Make the call
+		bufferme.toggle_hotswap_buffers()
+
+		-- Assert the toggle went to the new buffer from the second hotswap
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
+end)
+
+describe("bufferme.open_hotswap", function()
+	before_each(function()
+		reset_packages()
+		test_utils.reset_nvim()
+	end)
+
+	it("Should not open the first hotswap as there is none set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+
+		-- Make the call
+		bufferme.open_first_hotswap()
+
+		-- Assert the buffer didn't chage
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf)
+	end)
+
+	it("Should open the first hotswap when set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+
+		-- Make the call
+		state.firstBufHotswap = bufTwo
+		bufferme.open_first_hotswap()
+
+		-- Assert the buffer at hotswap one was opened
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
+
+	it("Should not open the second hotswap as there is none set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+
+		-- Make the call
+		bufferme.open_second_hotswap()
+
+		-- Assert the toggle went to the new buffer from the second hotswap
+		assert.is_equal(vim.api.nvim_get_current_buf(), buf)
+	end)
+
+	it("Should not open the second hotswap when set", function()
+		-- Set up state
+		local buf = vim.api.nvim_create_buf(true, true)
+		local bufTwo = vim.api.nvim_create_buf(true, true)
+		vim.api.nvim_set_current_buf(buf)
+
+		-- Make the call
+		state.secondBufHotswap = bufTwo
+		bufferme.open_second_hotswap()
+
+		-- Assert the buffer at hotswap two was opened
+		assert.is_equal(vim.api.nvim_get_current_buf(), bufTwo)
+	end)
 end)

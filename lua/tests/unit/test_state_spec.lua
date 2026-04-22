@@ -9,20 +9,30 @@ _G.vim = {
 local state = nil
 
 describe("state.append_to_buf_list", function()
+	local stub_nvim_buf_get_name
+	local stub_cwd
+	local stub_pesc
+
 	before_each(function()
-		stub(vim.api, "nvim_buf_get_name", function()
+		stub_nvim_buf_get_name = stub(vim.api, "nvim_buf_get_name", function()
 			return "sample_buf_1"
 		end)
-		stub(vim.loop, "cwd", function()
+		stub_cwd = stub(vim.loop, "cwd", function()
 			return "sample_buf_1"
 		end)
-		stub(vim, "pesc", function()
+		stub_pesc = stub(vim, "pesc", function()
 			return "sample_buf_1"
 		end)
 
 		-- Set up the dependencies
 		package.loaded["buffer-me.state"] = nil
 		state = require("buffer-me.state")
+	end)
+
+	after_each(function()
+		stub_nvim_buf_get_name:revert()
+		stub_cwd:revert()
+		stub_pesc:revert()
 	end)
 
 	it("Should append to an empty buffer list with no duplicates", function()
@@ -145,6 +155,174 @@ describe("state.remove_buf_by_num", function()
 		assert.is_equal(state.bufList[4], "place_holder_4")
 		state.remove_buf_by_num(4, state.bufList)
 		assert.is_equal(state.bufList[4], "place_holder_5")
+	end)
+end)
+
+describe("state.set_first_hotswap", function()
+	local stub_nvim_get_current_buf
+	local stub_bufnr
+
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+
+		stub_nvim_get_current_buf = stub(vim.api, "nvim_get_current_buf", function()
+			return 1
+		end)
+		stub_bufnr = stub(vim.fn, "bufnr", function()
+			return 1
+		end)
+	end)
+
+	after_each(function()
+		stub_nvim_get_current_buf:revert()
+		stub_bufnr:revert()
+	end)
+
+	it("Sets the first hotswap number", function()
+		assert.is_nil(state.firstBufHotswap)
+		state.set_first_hotswap(4)
+		assert.is_equal(state.firstBufHotswap, 4)
+	end)
+
+	it("Sets the first hotswap number from window", function()
+		assert.is_nil(state.firstBufHotswap)
+		local currBuf = vim.api.nvim_get_current_buf()
+		state.set_first_hotswap_from_window()
+		assert.is_equal(state.firstBufHotswap, currBuf)
+	end)
+end)
+
+describe("state.set_second_hotswap", function()
+	local stub_nvim_get_current_buf
+	local stub_bufnr
+
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+
+		stub_nvim_get_current_buf = stub(vim.api, "nvim_get_current_buf", function()
+			return 1
+		end)
+		stub_bufnr = stub(vim.fn, "bufnr", function()
+			return 1
+		end)
+	end)
+
+	after_each(function()
+		stub_nvim_get_current_buf:revert()
+		stub_bufnr:revert()
+	end)
+
+	it("Sets the second hotswap number", function()
+		assert.is_nil(state.secondBufHotswap)
+		state.set_second_hotswap(4)
+		assert.is_equal(state.secondBufHotswap, 4)
+	end)
+
+	it("Sets the second hotswap number from window", function()
+		assert.is_nil(state.secondBufHotswap)
+		local currBuf = vim.api.nvim_get_current_buf()
+		state.set_second_hotswap_from_window()
+		assert.is_equal(state.secondBufHotswap, currBuf)
+	end)
+end)
+
+describe("state.move_up_selected_search_result", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
+
+	it("Should not move selected result up when the selected result value minus one is less than 0", function()
+		-- Set up the state
+		state.selected_search_result = 1
+		state.move_up_selected_search_result()
+		assert.is_equal(state.selected_search_result, 1)
+	end)
+
+	it("Should move selected result up when the selected result value minus one is greater than 0", function()
+		-- Set up the state
+		state.selected_search_result = 5
+		state.move_up_selected_search_result()
+		assert.is_equal(state.selected_search_result, 4)
+	end)
+end)
+
+describe("state.move_down_selected_search_result", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
+
+	it(
+		"Should not move selected result down when the selected result value plus one is greater than the buf search results",
+		function()
+			-- Set up the state
+			state.selected_search_result = 3
+			state.buff_search_results = { "one", "two", "three" }
+			state.move_down_selected_search_result()
+			assert.is_equal(state.selected_search_result, 3)
+		end
+	)
+
+	it(
+		"Should move selected result down when the selected result value plus one is less than the buf search results",
+		function()
+			-- Set up the state
+			state.selected_search_result = 1
+			state.buff_search_results = { "one", "two", "three" }
+			state.move_down_selected_search_result()
+			assert.is_equal(state.selected_search_result, 2)
+		end
+	)
+end)
+
+describe("state.search_buffers", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
+
+	it("Should return results if there is a single match for the buffers", function()
+		-- Set up the state
+		state.bufList = { "one", "two", "three" }
+		state.search_buffers("on")
+		assert.is_same(state.buff_search_results, { { item = "one", score = 3 } })
+	end)
+
+	it("Should return results if there is are matches for the buffers", function()
+		-- Set up the state
+		state.bufList = { "one", "two", "three" }
+		state.search_buffers("o")
+		assert.is_same(state.buff_search_results, { { item = "one", score = 3 }, { item = "two", score = 3 } })
+	end)
+
+	it("Should not return results if there are no matches for the buffers", function()
+		-- Set up the state
+		state.bufList = { "one", "two", "three" }
+		state.search_buffers("xyz")
+		assert.is_same(state.buff_search_results, {})
+	end)
+end)
+
+describe("state.clear_selected_search_result", function()
+	before_each(function()
+		-- Set up the dependencies
+		package.loaded["buffer-me.state"] = nil
+		state = require("buffer-me.state")
+	end)
+
+	it("Should clear the selected search results", function()
+		-- Set up the state
+		state.selected_search_result = 5
+		state.clear_selected_search_result()
+		assert.is_nil(state.selected_search_result)
 	end)
 end)
 
