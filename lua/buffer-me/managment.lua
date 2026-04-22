@@ -1,6 +1,9 @@
 local state = require("buffer-me.state")
 local management = {}
 
+-- NOTE: If there is something to test, such as maybe a util function, it should be put outside of the disable line
+-- below to ensure it is counted as part of the coverage.
+-- luacov: disable
 local managementBuffGroup = vim.api.nvim_create_augroup("bufferme.buffer.tracking", { clear = true })
 
 local function get_buff_watch_flags()
@@ -90,4 +93,5 @@ function management.create_bindings()
 	})
 end
 
+-- luacov: enable
 return management

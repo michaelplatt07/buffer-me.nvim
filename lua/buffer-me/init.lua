@@ -23,7 +23,7 @@ end
 
 function M.remove_current_buffer()
 	-- Removes the specified buffer from the list of managed buffers
-	bufferme.remove_buf_current_selectded_buff()
+	bufferme.remove_buf_current_selected_buff()
 end
 
 function M.go_to_buffer()

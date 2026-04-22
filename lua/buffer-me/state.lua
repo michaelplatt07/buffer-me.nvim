@@ -178,14 +178,14 @@ function state.move_down_selected_search_result()
 	end
 end
 
-function state.remove_selected_buf_from_list()
-	if state.selected_search_result >= #state.buff_search_results then
+function state.remove_selected_buf_from_list(fieldName, selectedRow, resultsTable)
+	if selectedRow >= #resultsTable then
 		-- Handle the case deleting the last item and needing to highlight the last item again
-		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
-		state.selected_search_result = #state.buff_search_results
+		state.remove_buf_by_num(selectedRow, resultsTable)
+		state[fieldName] = #resultsTable
 	else
 		-- Handle everything else for deleting
-		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
+		state.remove_buf_by_num(selectedRow, resultsTable)
 	end
 end
 
