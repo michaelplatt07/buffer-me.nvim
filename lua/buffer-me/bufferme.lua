@@ -21,7 +21,7 @@ end
 
 function bufferme.open_selected_buffer()
 	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
-    -- Close the windows first so the appropriate interaction happens with actual buffers and not plugin buffers
+	-- Close the windows first so the appropriate interaction happens with actual buffers and not plugin buffers
 	windower.close_buffer_me()
 	state.clear_state()
 	vim.api.nvim_set_current_buf(selected_buf_handle)
@@ -111,21 +111,6 @@ function bufferme.open_selected_buffer_h_split()
 	windower.clean_up_buffers_on_close()
 end
 
-function bufferme.open_buffer_at_idx(idx)
-	local converted_idx = tonumber(idx)
-	-- Check first if we even have a buffer to open
-	if state.bufList[converted_idx] == nil then
-		return
-	else
-		local win_handle = vim.api.nvim_get_current_win()
-		vim.api.nvim_win_close(win_handle, true)
-		vim.api.nvim_win_close(state.hotswapWindowHandle, true)
-		local selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
-		vim.api.nvim_set_current_buf(selected_buf_handle)
-	end
-	state.clear_selected_row()
-end
-
 function bufferme.open_buffers_list()
 	-- Initialize the required buffers
 	windower.init_required_buffers()
@@ -212,7 +197,7 @@ function bufferme.delete_and_re_render_buf_list()
 	windower.remove_highlight(windower.bufListBuf, state.selectedRow)
 	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
 
-	bufferme.remove_buf_current_selectded_buff()
+	state.remove_selected_buf_from_list("selectedRow", state.selectedRow, state.bufList)
 	windower.re_render_buf_list_lines()
 end
 
@@ -221,7 +206,11 @@ function bufferme.delete_and_re_render_buf_search_list()
 	windower.remove_highlight(windower.bufListSearchResultBuf, state.selected_search_result)
 	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
 
-	state.remove_selected_buf_from_list()
+	state.remove_selected_buf_from_list(
+		"selected_search_result",
+		state.selected_search_result,
+		state.buff_search_results
+	)
 	windower.re_render_buf_search_results()
 end
 
@@ -237,21 +226,30 @@ function bufferme.add_all_buffers()
 	end
 end
 
-function bufferme.remove_buf_current_selectded_buff()
-	state.remove_buf_by_num(vim.api.nvim_win_get_cursor(0)[1])
+function bufferme.remove_buf_current_selected_buff()
+	state.remove_buf_by_num(vim.api.nvim_win_get_cursor(0)[1], state.bufList)
 end
 
 function bufferme.go_to_buffer()
 	print("Open buffer at index:")
 	local idx = vim.fn.nr2char(vim.fn.getchar())
+
+	-- Exit early if we get a q back
 	if idx == "q" then
 		return
-	else
-		bufferme.open_buffer_at_idx(idx)
 	end
+
+	-- Convert the input to a number
+	local converted_idx = tonumber(idx)
+	local selected_buf_handle = nil
+	if state.bufList[converted_idx] == nil then
+		return
+	end
+	selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 	windower.close_buffer_me()
 	windower.clean_up_buffers_on_close()
 	state.clear_state()
+	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
 
 -- function bufferme.go_next_buffer()
@@ -301,9 +299,6 @@ function bufferme.toggle_hotswap_buffers()
 	elseif state.firstBufHotswap == nil and state.secondBufHotswap ~= nil then
 		-- If there is no first hotswap but there is a second go there
 		vim.api.nvim_set_current_buf(state.secondBufHotswap)
-	elseif state.firstBufHotswap ~= bufnr then
-		-- Not on the current first buf hotswap
-		vim.api.nvim_set_current_buf(state.firstBufHotswap)
 	elseif state.firstBufHotswap == bufnr and state.secondBufHotswap ~= nil then
 		-- On the first buf hotswap so go to the second
 		vim.api.nvim_set_current_buf(state.secondBufHotswap)
@@ -317,6 +312,8 @@ function bufferme.toggle_hotswap_buffers()
 end
 
 function bufferme.open_first_hotswap()
+	-- TODO(map) Is this safe to let the user just call this without closing the plugin first? Bug can be raised if
+	-- this method is called periodically within another window in the plugin
 	-- Get the current windows buffer and name
 	local bufnr = vim.api.nvim_win_get_buf(0)
 	if state.firstBufHotswap == nil then
@@ -329,6 +326,8 @@ function bufferme.open_first_hotswap()
 end
 
 function bufferme.open_second_hotswap()
+	-- TODO(map) Is this safe to let the user just call this without closing the plugin first? Bug can be raised if
+	-- this method is called periodically within another window in the plugin
 	-- Get the current windows buffer and name
 	local bufnr = vim.api.nvim_win_get_buf(0)
 	if state.secondBufHotswap == nil then
@@ -338,18 +337,6 @@ function bufferme.open_second_hotswap()
 		-- If there is a first hotswap open it
 		vim.api.nvim_set_current_buf(state.secondBufHotswap)
 	end
-end
-
-function bufferme.close_buffer_me()
-	windower.close_buffer_me()
-	windower.clean_up_buffers_on_close()
-	state.clear_state()
-end
-
-function bufferme.close_buffer_me_search()
-	windower.close_buffer_me()
-	windower.clean_up_buffers_on_close()
-	state.clear_state()
 end
 
 function bufferme.select_window_placement()
@@ -385,6 +372,21 @@ function bufferme.select_window_placement()
 	end)
 end
 
+-- NOTE : These are just very simple functions or tests provide no value to have. If anything requires logic it should
+-- not be placed in the disabled block for code coverage
+-- luacov: disable
+function bufferme.close_buffer_me()
+	windower.close_buffer_me()
+	windower.clean_up_buffers_on_close()
+	state.clear_state()
+end
+
+function bufferme.close_buffer_me_search()
+	windower.close_buffer_me()
+	windower.clean_up_buffers_on_close()
+	state.clear_state()
+end
+
 function bufferme.setup_plugin(config)
 	-- Always clear before we load up so we are not doubling down on settings
 	state.clear_state()
@@ -412,5 +414,6 @@ function bufferme.setup_plugin(config)
 	-- Create the bindings on the buffer events
 	management.create_bindings()
 end
+-- luacov: enable
 
 return bufferme

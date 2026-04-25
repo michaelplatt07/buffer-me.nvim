@@ -154,6 +154,9 @@ end
 function windower.re_render_buf_list_lines()
 	clear_buf_list_lines()
 	windower.render_buf_list_lines()
+	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
+	windower.highlight_current_mark(windower.bufListBuf, state.selectedRow)
+	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
 end
 
 function windower.render_hotswap_lines()

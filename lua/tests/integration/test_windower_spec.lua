@@ -13,8 +13,6 @@ local function reset_packages()
 	state = require("buffer-me.state")
 end
 
--- TODO(map) Write test for re_render_buf_list_lines
-
 describe("buffer-me.windower", function()
 	before_each(function()
 		reset_packages()
@@ -96,6 +94,20 @@ describe("buffer-me.windower", function()
 
 			-- Check that everything closed and only the two original windows remain
 			assert.is_same(vim.api.nvim_list_wins(), { winOne, winTwo })
+		end)
+
+		it("Should rerender buffer lines when the method is called", function()
+			-- Ensure the buffer is empty
+			local curBuf = vim.api.nvim_get_current_buf()
+			assert.is_same(vim.api.nvim_buf_get_lines(curBuf, 0, 10, false), { "" })
+
+			-- Set the buffer list to be rendered and make the call
+			state.selectedRow = 1
+			windower.bufListBuf = curBuf
+			state.bufList = { "One", "Two", "Three" }
+			windower.re_render_buf_list_lines()
+
+			assert.is_same(vim.api.nvim_buf_get_lines(curBuf, 0, 10, false), { "1: One", "2: Two", "3: Three" })
 		end)
 	end)
 end)
