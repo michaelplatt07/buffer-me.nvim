@@ -74,6 +74,10 @@ local searchKeybindings = {
 		mode = "i",
 		key = "<C-s>",
 	},
+	select_placement = {
+		mode = "n",
+		key = "sp",
+	},
 	close = {
 		mode = "n",
 		key = "q",
@@ -139,7 +143,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -149,7 +152,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -159,7 +161,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -169,7 +170,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -179,7 +179,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -189,7 +188,6 @@ function keybindings.map_search_keys(buf)
 		end)
 	end, {
 		buffer = buf,
-		expr = true,
 		noremap = true,
 		silent = true,
 	})
@@ -203,12 +201,12 @@ function keybindings.map_search_keys(buf)
 		vim.schedule(function()
 			require("buffer-me.bufferme").open_selected_search_result_v_split()
 		end)
-	end, { buffer = buf, expr = true, noremap = true, silent = true })
+	end, { buffer = buf, noremap = true, silent = true })
 	vim.keymap.set(searchKeybindings.open_h_split.mode, searchKeybindings.open_h_split.key, function()
 		vim.schedule(function()
 			require("buffer-me.bufferme").open_selected_search_result_h_split()
 		end)
-	end, { buffer = buf, expr = true, noremap = true, silent = true })
+	end, { buffer = buf, noremap = true, silent = true })
 	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
 		require("buffer-me.bufferme").close_buffer_me_search()
 	end, { buffer = buf })
@@ -219,9 +217,12 @@ function keybindings.map_search_keys(buf)
 		vim.schedule(function()
 			require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
 		end)
-	end, { buffer = buf, expr = true, noremap = true, silent = true })
+	end, { buffer = buf, noremap = true, silent = true })
 	vim.keymap.set(searchKeybindings.delete_n_mode.mode, searchKeybindings.delete_n_mode.key, function()
 		require("buffer-me.bufferme").delete_and_re_render_buf_search_list()
+	end, { buffer = buf })
+	vim.keymap.set(searchKeybindings.select_placement.mode, searchKeybindings.select_placement.key, function()
+		require("buffer-me.bufferme").select_window_placement()
 	end, { buffer = buf })
 end
 

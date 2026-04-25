@@ -2,57 +2,19 @@ local state = {
 	-- Configs
 	autoManage = false,
 	recentToTop = false,
+	maxRecentBufferTrack = 10, -- Default to 10 but this can be set in configs
 
 	-- State management
-	bufListBuf = nil,
-	hotswapBuf = nil,
-	hotswapWindowHandle = nil,
-	bufListSearch = nil,
-	bufListSearchResultBuff = nil,
-	searchBarWindowHandle = nil,
-	searchResultsWindowHandle = nil,
 	buff_search_results = {},
 	selected_search_result = nil,
 	bufList = {},
-	maxRecentBufferTrack = 10, -- Default to 10 but this can be set in configs
 	selectedRow = nil,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
 	lastExitedBuffer = nil,
 	mostRecentBuffer = nil,
-	bufLabelHandles = {},
 }
-
-function state.init_required_buffers()
-	if state.bufListBuf == nil then
-		state.bufListBuf = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_option(state.bufListBuf, "buftype", "nofile")
-	end
-
-	if state.hotswapBuf == nil then
-		state.hotswapBuf = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_option(state.hotswapBuf, "buftype", "nofile")
-	end
-
-	if state.bufListSearch == nil then
-		state.bufListSearch = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_option(state.bufListSearch, "buftype", "prompt")
-		vim.fn.prompt_setprompt(state.bufListSearch, "> ")
-	end
-
-	if state.bufListSearchResultBuff == nil then
-		state.bufListSearchResultBuff = vim.api.nvim_create_buf(false, true)
-		vim.api.nvim_buf_set_option(state.bufListSearchResultBuff, "buftype", "nofile")
-	end
-end
-
-function state.clean_up_buffers_on_close()
-	vim.api.nvim_buf_delete(state.bufListSearch, { force = true })
-	state.bufListSearch = nil
-	vim.api.nvim_buf_delete(state.bufListSearchResultBuff, { force = true })
-	state.bufListSearchResultBuff = nil
-end
 
 local function shiftAndInsertBuffer(buf_name)
 	if buf_name ~= nil and buf_name ~= "" then
@@ -216,28 +178,15 @@ function state.move_down_selected_search_result()
 	end
 end
 
-function state.remove_selected_buf_from_list()
-	if state.selected_search_result >= #state.buff_search_results then
+function state.remove_selected_buf_from_list(fieldName, selectedRow, resultsTable)
+	if selectedRow >= #resultsTable then
 		-- Handle the case deleting the last item and needing to highlight the last item again
-		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
-		state.selected_search_result = #state.buff_search_results
+		state.remove_buf_by_num(selectedRow, resultsTable)
+		state[fieldName] = #resultsTable
 	else
 		-- Handle everything else for deleting
-		state.remove_buf_by_num(state.selected_search_result, state.buff_search_results)
+		state.remove_buf_by_num(selectedRow, resultsTable)
 	end
-end
-
-function state.clear_selected_row()
-	state.selectedRow = nil
-end
-
-function state.clear_selected_search_result()
-	state.selected_search_result = nil
-end
-
-function state.clear_state()
-	state.bufList = {}
-	state.selectedRow = nil
 end
 
 local function fuzzy_path_score(query, path)
@@ -310,6 +259,23 @@ end
 
 function state.search_buffers(buf_search_term)
 	state.buff_search_results = fuzzy_substr(buf_search_term, state.bufList)
+end
+
+function state.clear_selected_row()
+	state.selectedRow = nil
+end
+
+function state.clear_selected_search_result()
+	state.selected_search_result = nil
+end
+
+function state.clear_state()
+	-- There are certain fields we don't want to reset such as the bufList which tracks the buffers and hotswaps and
+	-- most recent buffers
+	state.buff_search_results = {}
+	state.selected_search_result = nil
+	state.selectedRow = nil
+	state.currSelectedBuffer = nil
 end
 
 return state

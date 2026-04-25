@@ -1,7 +1,4 @@
 local bufferme = require("buffer-me.bufferme")
-local keybindings = require("buffer-me.keybindings")
-local state = require("buffer-me.state")
-local management = require("buffer-me.managment")
 local M = {}
 
 function M.open()
@@ -26,7 +23,7 @@ end
 
 function M.remove_current_buffer()
 	-- Removes the specified buffer from the list of managed buffers
-	bufferme.remove_buf_current_selectded_buff()
+	bufferme.remove_buf_current_selected_buff()
 end
 
 function M.go_to_buffer()
@@ -34,15 +31,15 @@ function M.go_to_buffer()
 	bufferme.go_to_buffer()
 end
 
-function M.next_buffer()
-	-- Goes to next buffer in the buffer set list
-	bufferme.go_next_buffer()
-end
-
-function M.prev_buffer()
-	-- Goes to previous buffer in the buffer set list
-	bufferme.go_prev_buffer()
-end
+-- function M.next_buffer()
+-- 	-- Goes to next buffer in the buffer set list
+-- 	bufferme.go_next_buffer()
+-- end
+--
+-- function M.prev_buffer()
+-- 	-- Goes to previous buffer in the buffer set list
+-- 	bufferme.go_prev_buffer()
+-- end
 
 function M.clear_list()
 	-- Clears all the buffers from the lists
@@ -75,28 +72,7 @@ function M.toggle_last_buffer()
 end
 
 function M.setup(config)
-	if config ~= nil then
-		if config.keys ~= nil then
-			for func, custombind in pairs(config.keys) do
-				keybindings.update_key_binding(func, custombind)
-			end
-		end
-		if config.auto_manage ~= nil then
-			state.autoManage = config.auto_manage
-		end
-		if config.most_recent_to_top ~= nil and config.most_recent_to_top == true then
-			state.recentToTop = config.most_recent_to_top
-		end
-		if config.max_recent_buffer_track ~= nil then
-			state.maxRecentBufferTrack = config.max_recent_buffer_track
-		end
-		if config.debug ~= nil and config.debug == true then
-			state.debug = config.debug
-		end
-	end
-
-	-- Create the bindings on the buffer events
-	management.create_bindings()
+	bufferme.setup_plugin(config)
 end
 
 return M
