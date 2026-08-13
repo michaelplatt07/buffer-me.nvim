@@ -227,6 +227,27 @@ describe("bufferme.open_search_bar", function()
 		assert.is_equal(state.selected_search_result, 1)
 		assert.is_equal(vim.api.nvim_get_current_buf(), windower.bufListSearchBuf)
 	end)
+
+	it("Should perform a search on initialize to get the results set", function()
+		-- Run some set up with buffers so they can appear in the search
+		local buf_one = vim.api.nvim_create_buf(true, false)
+		local buf_two = vim.api.nvim_create_buf(true, false)
+		local buf_three = vim.api.nvim_create_buf(true, false)
+		vim.api.nvim_buf_set_name(buf_one, "buf_one")
+		vim.api.nvim_buf_set_name(buf_two, "buf_two")
+		vim.api.nvim_buf_set_name(buf_three, "buf_three")
+		state.bufList = { "buf_one", "buf_two", "buf_three" }
+
+		-- Call the open method
+		bufferme.open_search_bar()
+
+		-- Ensure all three results are in the results page
+		assert.is_same(vim.api.nvim_buf_get_lines(windower.bufListSearchResultBuf, 0, -1, false), {
+			"buf_one",
+			"buf_two",
+			"buf_three",
+		})
+	end)
 end)
 
 describe("bufferme.move_search_selection", function()
