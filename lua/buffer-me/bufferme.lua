@@ -147,11 +147,14 @@ function bufferme.open_search_bar()
 	-- Initialize the required buffers
 	windower.init_required_buffers()
 
-	-- Set the lines for the buffer list
-	windower.create_buff_search_bar()
-
 	-- Initialize the search result to the first entry
 	state.selected_search_result = 1
+
+	-- Set the lines for the buffer list
+	windower.create_buff_search_bar()
+	windower.create_buff_search_results_window_if_not_exists()
+	state.search_buffers("")
+	windower.re_render_buf_search_results()
 
 	vim.api.nvim_buf_attach(windower.bufListSearchBuf, false, {
 		on_lines = function(_, _, _, firstline, _, linedata)
