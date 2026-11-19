@@ -140,7 +140,17 @@ function bufferme.open_buffers_list()
 	end
 
 	-- Initialize key bindings
-	keybindings.map_keys(windower.bufListBuf)
+	keybindings.map_keys(windower.bufListBuf, {
+		open = bufferme.open_selected_buffer,
+		del = bufferme.delete_and_re_render_buf_list,
+		v_split = bufferme.open_selected_buffer_v_split,
+		h_split = bufferme.open_selected_buffer_h_split,
+		set_first = bufferme.set_first_hotswap,
+		set_second = bufferme.set_second_hotswap,
+		go_to = bufferme.go_to_buffer,
+		close = bufferme.close_buffer_me,
+		select_window = bufferme.select_window_placement,
+	})
 end
 
 function bufferme.open_search_bar()
@@ -173,8 +183,17 @@ function bufferme.open_search_bar()
 	vim.api.nvim_command("startinsert")
 
 	-- Initialize key bindings
-	keybindings.map_search_keys(windower.bufListSearchBuf)
-	keybindings.map_search_res_keys(windower.bufListSearchResultBuf)
+	keybindings.map_search_keys(windower.bufListSearchBuf, {
+		move_down = bufferme.move_search_selection_down,
+		move_up = bufferme.move_search_selection_up,
+		open = bufferme.open_selected_search_result,
+		v_split = bufferme.open_selected_search_result_v_split,
+		h_split = bufferme.open_selected_search_result_h_split,
+		close = bufferme.close_buffer_me_search,
+		del = bufferme.delete_and_re_render_buf_search_list,
+		select_window = bufferme.select_window_placement,
+	})
+	keybindings.map_search_res_keys(windower.bufListSearchResultBuf, { close = bufferme.close_buffer_me_search })
 end
 
 function bufferme.move_search_selection_up()
