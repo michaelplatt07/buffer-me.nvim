@@ -1,5 +1,6 @@
 local state = require("buffer-me.state")
 local windower = require("buffer-me.windower")
+local renderer = require("buffer-me.renderer")
 local utils = require("buffer-me.utils")
 local keybindings = require("buffer-me.keybindings")
 local management = require("buffer-me.managment")
@@ -115,23 +116,13 @@ function bufferme.open_buffers_list()
 	-- Initialize the required buffers
 	windower.init_required_buffers()
 
-	-- Callback for when the cursor moves around in the buffer
-	vim.api.nvim_create_autocmd({ "CursorMoved" }, {
-		buffer = windower.bufListBuf,
-		callback = function()
-			if #state.bufList > 0 then
-				state.update_selected_row()
-			end
-		end,
-	})
-
 	-- Set the lines for the hotswap buffer
 	windower.create_hot_swap_window()
-	windower.render_hotswap_lines()
+	renderer.render_hotswap_lines(windower.hotswapBuf, state.firstBufHotswap, state.secondBufHotswap)
 
 	-- Set the lines for the buffer list
 	windower.create_buf_list_window()
-	windower.render_buf_list_lines()
+	renderer.render_buf_list_lines(windower.bufListBuf, state.bufList, state.maxRecentBufferTrack)
 
 	-- Handle an empty selected row for the first time
 	-- TODO(map) Decide whether or not we will keep the state of the selected row upon closing the window or not
@@ -164,7 +155,11 @@ function bufferme.open_search_bar()
 	windower.create_buff_search_bar()
 	windower.create_buff_search_results_window_if_not_exists()
 	state.search_buffers("")
-	windower.re_render_buf_search_results()
+	renderer.re_render_buf_search_results(
+		windower.bufListSearchResultBuf,
+		state.buff_search_results,
+		state.selected_search_result
+	)
 
 	vim.api.nvim_buf_attach(windower.bufListSearchBuf, false, {
 		on_lines = function(_, _, _, firstline, _, linedata)
@@ -173,7 +168,11 @@ function bufferme.open_search_bar()
 				local search_term, _ = string.gsub(input, "> ", "")
 				state.search_buffers(search_term)
 				windower.create_buff_search_results_window_if_not_exists()
-				windower.re_render_buf_search_results()
+				renderer.re_render_buf_search_results(
+					windower.bufListSearchResultBuf,
+					state.buff_search_results,
+					state.selected_search_result
+				)
 			end)
 		end,
 	})
@@ -233,7 +232,11 @@ function bufferme.delete_and_re_render_buf_search_list()
 		state.selected_search_result,
 		state.buff_search_results
 	)
-	windower.re_render_buf_search_results()
+	renderer.re_render_buf_search_results(
+		windower.bufListSearchResultBuf,
+		state.buff_search_results,
+		state.selected_search_result
+	)
 end
 
 function bufferme.add_buf()

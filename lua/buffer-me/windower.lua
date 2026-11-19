@@ -1,4 +1,3 @@
-local state = require("buffer-me.state")
 local utils = require("buffer-me.utils")
 local windower = {
 	-- Buffer management
@@ -14,9 +13,6 @@ local windower = {
 	searchResultsWindowHandle = nil,
 	bufLabelHandles = {},
 }
-
--- The highlight group needs to be global in the tool so it can be used anywhere
-windower.ns_search_cursor = vim.api.nvim_create_namespace("bufferme_search_cursor")
 
 local function get_full_window_dimensions()
 	-- Gets the UI which should always actually be available. The else block is strictly for handling integrations as
@@ -43,12 +39,6 @@ local function clear_buf_list_lines()
 	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
 	vim.api.nvim_buf_set_lines(windower.bufListBuf, 0, -1, false, {})
 	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
-end
-
-local function clear_buf_search_results()
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-	vim.api.nvim_buf_set_lines(windower.bufListSearchResultBuf, 0, -1, false, {})
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
 end
 
 function windower.init_required_buffers()
@@ -134,91 +124,6 @@ function windower.create_buff_search_results_window_if_not_exists()
 	end
 end
 
-function windower.render_buf_list_lines()
-	-- Enable modifications to draw the lines to the buffer
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
-
-	local lines = {}
-	for idx, value in pairs(state.bufList) do
-		if idx > state.maxRecentBufferTrack then
-			break
-		end
-		table.insert(lines, string.format("%s: %s", idx, value))
-	end
-	vim.api.nvim_buf_set_lines(windower.bufListBuf, 0, #lines, false, lines)
-
-	-- Disable modifications because it's rendered
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
-end
-
-function windower.re_render_buf_list_lines()
-	clear_buf_list_lines()
-	windower.render_buf_list_lines()
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
-	windower.highlight_current_mark(windower.bufListBuf, state.selectedRow)
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
-end
-
-function windower.render_hotswap_lines()
-	-- Enable modifications to draw the lines to the buffer
-	vim.api.nvim_buf_set_option(windower.hotswapBuf, "modifiable", true)
-
-	local hotswap_lines = {}
-	local firstHotswapName = nil
-	if state.firstBufHotswap ~= nil then
-		firstHotswapName = vim.api.nvim_buf_get_name(state.firstBufHotswap)
-	end
-	local secondHotswapName = nil
-	if state.secondBufHotswap ~= nil then
-		secondHotswapName = vim.api.nvim_buf_get_name(state.secondBufHotswap)
-	end
-	table.insert(hotswap_lines, string.format("%s: %s", 1, firstHotswapName))
-	table.insert(hotswap_lines, string.format("%s: %s", 2, secondHotswapName))
-	vim.api.nvim_buf_set_lines(windower.hotswapBuf, 0, 2, false, hotswap_lines)
-
-	-- Disable modifications because it's rendered
-	vim.api.nvim_buf_set_option(windower.hotswapBuf, "modifiable", false)
-end
-
-function windower.render_buf_search_results()
-	-- Enable modifications to draw the lines to the buffer
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-
-	local lines = {}
-	for _, value in pairs(state.buff_search_results) do
-		table.insert(lines, string.format("%s", value.item))
-	end
-	vim.api.nvim_buf_set_lines(windower.bufListSearchResultBuf, 0, #lines, false, lines)
-
-	-- Disable modifications because it's rendered
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
-end
-
-function windower.re_render_buf_search_results()
-	clear_buf_search_results()
-	windower.render_buf_search_results()
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-	windower.highlight_current_mark(windower.bufListSearchResultBuf, state.selected_search_result)
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
-end
-
---- Wrapper function around Neovim's line highlight functionality
---- @param line_num number The 1-indexed value of the line number
-function windower.highlight_current_mark(buf, line_num)
-	-- Subtract one from the line_num value because lua is 1 indexed
-	local line = vim.api.nvim_buf_get_lines(buf, line_num - 1, line_num, false)[1]
-	vim.api.nvim_buf_set_extmark(buf, windower.ns_search_cursor, line_num - 1, 0, {
-		hl_group = "CursorLine",
-		end_col = #line,
-	})
-end
-
---- Wrapper function around Neovim's line highlight removal functionality
---- @param line_num number The 1-indexed value of the line number
-function windower.remove_highlight(buf, line_num)
-	vim.api.nvim_buf_clear_namespace(buf, windower.ns_search_cursor, line_num - 1, -1)
-end
-
 function windower.create_window_labels()
 	for idx, windowNum in ipairs(utils.windowMap) do
 		local buf = vim.api.nvim_create_buf(false, true)
@@ -240,6 +145,7 @@ function windower.create_window_labels()
 	end
 end
 
+-- TODO(map) This and the method below should be a single method
 function windower.clean_up_buffers_on_close()
 	if windower.bufListBuf and vim.api.nvim_buf_is_valid(windower.bufListBuf) then
 		vim.api.nvim_buf_delete(windower.bufListBuf, { force = true })
