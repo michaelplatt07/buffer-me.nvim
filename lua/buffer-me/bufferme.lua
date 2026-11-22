@@ -6,10 +6,6 @@ local keybindings = require("buffer-me.keybindings")
 local management = require("buffer-me.managment")
 local bufferme = {}
 
-function bufferme.open_most_recent_buffer()
-	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
-end
-
 local function getSelectedBufHandle(rowNumber)
 	if next(state.bufList) ~= nil then
 		return vim.fn.bufnr(state.bufList[rowNumber])
@@ -20,115 +16,17 @@ local function getSelectedBufHandle(rowNumber)
 	end
 end
 
-function bufferme.open_selected_buffer()
-	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
-	-- Close the windows first so the appropriate interaction happens with actual buffers and not plugin buffers
-	windower.close_buffer_me()
-	state.clear_state()
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-end
-
-local function getSelectedSearchResultBufHandle()
-	-- TODO(map) This may not be safe but that's tomorrow me's issue
-	return vim.fn.bufnr(state.buff_search_results[state.selected_search_result].item)
-end
-
-function bufferme.open_selected_search_result()
-	-- Exit insert mode safely first
-	if vim.fn.mode() == "i" then
-		vim.cmd("stopinsert")
-	end
-
-	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	-- Close all the windows here so only NeoVim remains open and setting the current buffer to the selected one works
-	-- as intended instead of replacing the contents of a temp buffer in the form of the plugin
-	windower.close_buffer_me()
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-
-	-- Clear the state and clean up any remaining buffers
-	state.clear_state()
-	windower.clean_up_buffers_on_close()
-end
-
-function bufferme.open_selected_search_result_v_split()
-	-- Exit insert mode safely first
-	if vim.fn.mode() == "i" then
-		vim.cmd("stopinsert")
-	end
-
-	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	-- Close all the windows here so only NeoVim remains open and setting the current buffer to the selected one works
-	-- as intended instead of replacing the contents of a temp buffer in the form of the plugin
-	windower.close_buffer_me()
-	vim.cmd("vsplit")
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-
-	-- Clear the state and clean up any remaining buffers
-	state.clear_state()
-	windower.clean_up_buffers_on_close()
-end
-
-function bufferme.open_selected_search_result_h_split()
-	-- Exit insert mode safely first
-	if vim.fn.mode() == "i" then
-		vim.cmd("stopinsert")
-	end
-
-	local selected_buf_handle = getSelectedSearchResultBufHandle()
-	-- Close all the windows here so only NeoVim remains open and setting the current buffer to the selected one works
-	-- as intended instead of replacing the contents of a temp buffer in the form of the plugin
-	windower.close_buffer_me()
-	vim.cmd("split")
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-
-	-- Clear the state and clean up any remaining buffers
-	state.clear_state()
-	windower.clean_up_buffers_on_close()
-end
-
-function bufferme.open_selected_buffer_v_split()
-	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
-	-- Close all the windows here so only NeoVim remains open and setting the current buffer to the selected one works
-	-- as intended instead of replacing the contents of a temp buffer in the form of the plugin
-	windower.close_buffer_me()
-	vim.cmd("vsplit")
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-
-	-- Clear the state and clean up any remaining buffers
-	state.clear_state()
-	windower.clean_up_buffers_on_close()
-end
-
-function bufferme.open_selected_buffer_h_split()
-	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
-	-- Close all the windows here so only NeoVim remains open and setting the current buffer to the selected one works
-	-- as intended instead of replacing the contents of a temp buffer in the form of the plugin
-	windower.close_buffer_me()
-	vim.cmd("split")
-	vim.api.nvim_set_current_buf(selected_buf_handle)
-
-	-- Clear the state and clean up any remaining buffers
-	state.clear_state()
-	windower.clean_up_buffers_on_close()
-end
-
 function bufferme.open_buffers_list()
 	-- Initialize the required buffers
 	windower.init_required_buffers()
 
-	-- Set the lines for the hotswap buffer
+	-- open the hotswap window and set the values
 	windower.create_hot_swap_window()
 	renderer.render_hotswap_lines(windower.hotswapBuf, state.firstBufHotswap, state.secondBufHotswap)
 
 	-- Set the lines for the buffer list
 	windower.create_buf_list_window()
-	renderer.render_buf_list_lines(windower.bufListBuf, state.bufList, state.maxRecentBufferTrack)
-
-	-- Handle an empty selected row for the first time
-	-- TODO(map) Decide whether or not we will keep the state of the selected row upon closing the window or not
-	if state.selectedRow == nil then
-		state.update_selected_row()
-	end
+	renderer.render_buf_list_lines(windower.bufListBuf, state.bufList, state.selectedRow, state.maxRecentBufferTrack)
 
 	-- Initialize key bindings
 	keybindings.map_keys(windower.bufListBuf, {
@@ -141,6 +39,8 @@ function bufferme.open_buffers_list()
 		go_to = bufferme.go_to_buffer,
 		close = bufferme.close_buffer_me,
 		select_window = bufferme.select_window_placement,
+		up = bufferme.move_up,
+		down = bufferme.move_down,
 	})
 end
 
@@ -149,17 +49,13 @@ function bufferme.open_search_bar()
 	windower.init_required_buffers()
 
 	-- Initialize the search result to the first entry
-	state.selected_search_result = 1
+	state.selectedRow = 1
 
 	-- Set the lines for the buffer list
 	windower.create_buff_search_bar()
-	windower.create_buff_search_results_window_if_not_exists()
+	windower.create_buff_search_results_window()
 	state.search_buffers("")
-	renderer.re_render_buf_search_results(
-		windower.bufListSearchResultBuf,
-		state.buff_search_results,
-		state.selected_search_result
-	)
+	renderer.re_render_buf_search_results(windower.bufListSearchResultBuf, state.buff_search_results, state.selectedRow)
 
 	vim.api.nvim_buf_attach(windower.bufListSearchBuf, false, {
 		on_lines = function(_, _, _, firstline, _, linedata)
@@ -167,11 +63,10 @@ function bufferme.open_search_bar()
 			vim.schedule(function()
 				local search_term, _ = string.gsub(input, "> ", "")
 				state.search_buffers(search_term)
-				windower.create_buff_search_results_window_if_not_exists()
 				renderer.re_render_buf_search_results(
 					windower.bufListSearchResultBuf,
 					state.buff_search_results,
-					state.selected_search_result
+					state.selectedRow
 				)
 			end)
 		end,
@@ -191,26 +86,131 @@ function bufferme.open_search_bar()
 		close = bufferme.close_buffer_me_search,
 		del = bufferme.delete_and_re_render_buf_search_list,
 		select_window = bufferme.select_window_placement,
+		down = bufferme.move_down,
+		up = bufferme.move_up,
 	})
 	keybindings.map_search_res_keys(windower.bufListSearchResultBuf, { close = bufferme.close_buffer_me_search })
 end
 
-function bufferme.move_search_selection_up()
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-	windower.remove_highlight(windower.bufListSearchResultBuf, state.selected_search_result)
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
-
-	state.move_up_selected_search_result()
-	windower.re_render_buf_search_results()
+function bufferme.open_most_recent_buffer()
+	vim.api.nvim_set_current_buf(state.mostRecentBuffer)
 end
 
-function bufferme.move_search_selection_down()
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-	windower.remove_highlight(windower.bufListSearchResultBuf, state.selected_search_result)
-	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
+function bufferme.open_selected_buffer()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
 
-	state.move_down_selected_search_result()
-	windower.re_render_buf_search_results()
+	-- Clear the state and clean up anything related to the windows
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.open_selected_buffer_v_split()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
+
+	-- Clear the state and clean up anything related to the windows
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.open_selected_buffer_h_split()
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
+
+	-- Clear the state and clean up anything related to the windows
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.cmd("split")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.open_selected_search_result()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
+
+	-- Clear the state and clean up anything related to the windows
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.open_selected_search_result_v_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
+
+	-- Clear the state and clean up anything related to the windows
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.cmd("vsplit")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.open_selected_search_result_h_split()
+	-- Exit insert mode safely first
+	if vim.fn.mode() == "i" then
+		vim.cmd("stopinsert")
+	end
+
+	local selected_buf_handle = getSelectedBufHandle(state.selectedRow)
+
+	-- Clear the state and clean up any remaining buffers
+	windower.close_buffer_me()
+	state.clear_state()
+
+	-- Open the actual buffer
+	vim.cmd("split")
+	vim.api.nvim_set_current_buf(selected_buf_handle)
+end
+
+function bufferme.move_up()
+	if windower.searchResultsWindowHandle then
+		vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
+		renderer.remove_highlight(windower.bufListSearchResultBuf, state.selectedRow)
+		state.move_up(windower.searchResultsWindowHandle)
+		renderer.highlight_current_mark(windower.bufListSearchResultBuf, state.selectedRow)
+		vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
+	else
+		vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
+		renderer.remove_highlight(windower.bufListBuf, state.selectedRow)
+		state.move_up(windower.bufListWindowHandle)
+		renderer.highlight_current_mark(windower.bufListBuf, state.selectedRow)
+		vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
+	end
+end
+
+function bufferme.move_down()
+	if windower.searchResultsWindowHandle then
+		vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
+		renderer.remove_highlight(windower.bufListSearchResultBuf, state.selectedRow)
+		state.move_down(windower.searchResultsWindowHandle, true)
+		renderer.highlight_current_mark(windower.bufListSearchResultBuf, state.selectedRow)
+		vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
+	else
+		vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
+		renderer.remove_highlight(windower.bufListBuf, state.selectedRow)
+		state.move_down(windower.bufListWindowHandle, false)
+		renderer.highlight_current_mark(windower.bufListBuf, state.selectedRow)
+		vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
+	end
 end
 
 function bufferme.delete_and_re_render_buf_list()
@@ -224,19 +224,11 @@ end
 
 function bufferme.delete_and_re_render_buf_search_list()
 	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", true)
-	windower.remove_highlight(windower.bufListSearchResultBuf, state.selected_search_result)
+	windower.remove_highlight(windower.bufListSearchResultBuf, state.selectedRow)
 	vim.api.nvim_buf_set_option(windower.bufListSearchResultBuf, "modifiable", false)
 
-	state.remove_selected_buf_from_list(
-		"selected_search_result",
-		state.selected_search_result,
-		state.buff_search_results
-	)
-	renderer.re_render_buf_search_results(
-		windower.bufListSearchResultBuf,
-		state.buff_search_results,
-		state.selected_search_result
-	)
+	state.remove_selected_buf_from_list("selectedRow", state.selectedRow, state.buff_search_results)
+	renderer.re_render_buf_search_results(windower.bufListSearchResultBuf, state.buff_search_results, state.selectedRow)
 end
 
 function bufferme.add_buf()
@@ -272,7 +264,6 @@ function bufferme.go_to_buffer()
 	end
 	selected_buf_handle = vim.fn.bufnr(state.bufList[converted_idx])
 	windower.close_buffer_me()
-	windower.clean_up_buffers_on_close()
 	state.clear_state()
 	vim.api.nvim_set_current_buf(selected_buf_handle)
 end
@@ -366,7 +357,7 @@ end
 
 function bufferme.select_window_placement()
 	utils.build_windows_map()
-	windower.create_window_labels()
+	windower.create_window_label_windows_and_buffers()
 
 	vim.schedule(function()
 		vim.ui.input({ prompt = "Select window: " }, function(input)
@@ -375,8 +366,6 @@ function bufferme.select_window_placement()
 				local selectedBufHandle = nil
 				if state.selectedRow ~= nil then
 					selectedBufHandle = getSelectedBufHandle(state.selectedRow)
-				elseif state.selected_search_result ~= nil then
-					selectedBufHandle = getSelectedBufHandle(state.selected_search_result)
 				else
 					selectedBufHandle = nil
 				end
@@ -390,7 +379,6 @@ function bufferme.select_window_placement()
 			-- TODO(map) Do we always clean up regardless of how the user exits? It's possible that we want to go back
 			-- to the original state of asking a user for an input?
 			windower.close_buffer_me()
-			windower.clean_up_buffers_on_close()
 			state.clear_state()
 			utils.clear_window_map()
 		end)
@@ -402,13 +390,11 @@ end
 -- luacov: disable
 function bufferme.close_buffer_me()
 	windower.close_buffer_me()
-	windower.clean_up_buffers_on_close()
 	state.clear_state()
 end
 
 function bufferme.close_buffer_me_search()
 	windower.close_buffer_me()
-	windower.clean_up_buffers_on_close()
 	state.clear_state()
 end
 

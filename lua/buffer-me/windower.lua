@@ -35,12 +35,6 @@ local function get_specified_window_dimensions(winId)
 	return { width = width, height = height }
 end
 
-local function clear_buf_list_lines()
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", true)
-	vim.api.nvim_buf_set_lines(windower.bufListBuf, 0, -1, false, {})
-	vim.api.nvim_buf_set_option(windower.bufListBuf, "modifiable", false)
-end
-
 function windower.init_required_buffers()
 	if windower.bufListBuf == nil then
 		windower.bufListBuf = vim.api.nvim_create_buf(false, true)
@@ -106,25 +100,21 @@ function windower.create_buff_search_bar()
 	})
 end
 
-function windower.create_buff_search_results_window_if_not_exists()
-	if windower.searchResultsWindowHandle then
-		return windower.searchResultsWindowHandle
-	else
-		local windowInfo = get_full_window_dimensions()
-		windower.searchResultsWindowHandle = vim.api.nvim_open_win(windower.bufListSearchResultBuf, false, {
-			relative = "editor",
-			row = math.floor((windowInfo.height - 52) / 2),
-			col = math.floor((windowInfo.width - 100) / 2),
-			width = 100,
-			height = 25,
-			border = "double",
-			style = "minimal",
-			title = "Matches",
-		})
-	end
+function windower.create_buff_search_results_window()
+	local windowInfo = get_full_window_dimensions()
+	windower.searchResultsWindowHandle = vim.api.nvim_open_win(windower.bufListSearchResultBuf, false, {
+		relative = "editor",
+		row = math.floor((windowInfo.height - 52) / 2),
+		col = math.floor((windowInfo.width - 100) / 2),
+		width = 100,
+		height = 25,
+		border = "double",
+		style = "minimal",
+		title = "Matches",
+	})
 end
 
-function windower.create_window_labels()
+function windower.create_window_label_windows_and_buffers()
 	for idx, windowNum in ipairs(utils.windowMap) do
 		local buf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_lines(buf, 0, -1, false, utils.numberToAsciiMap[idx])
@@ -145,49 +135,45 @@ function windower.create_window_labels()
 	end
 end
 
--- TODO(map) This and the method below should be a single method
-function windower.clean_up_buffers_on_close()
-	if windower.bufListBuf and vim.api.nvim_buf_is_valid(windower.bufListBuf) then
-		vim.api.nvim_buf_delete(windower.bufListBuf, { force = true })
-	end
-	if windower.hotswapBuf and vim.api.nvim_buf_is_valid(windower.hotswapBuf) then
-		vim.api.nvim_buf_delete(windower.hotswapBuf, { force = true })
-	end
-	if windower.bufListSearchResultBuf and vim.api.nvim_buf_is_valid(windower.bufListSearchResultBuf) then
-		vim.api.nvim_buf_delete(windower.bufListSearchResultBuf, { force = true })
-	end
-	if windower.bufListSearchBuf and vim.api.nvim_buf_is_valid(windower.bufListSearchBuf) then
-		vim.api.nvim_buf_delete(windower.bufListSearchBuf, { force = true })
-	end
-	windower.bufListBuf = nil
-	windower.hotswapBuf = nil
-	windower.bufListSearchResultBuf = nil
-	windower.bufListSearchBuf = nil
-end
-
 function windower.close_buffer_me()
 	if windower.bufListWindowHandle and vim.api.nvim_win_is_valid(windower.bufListWindowHandle) then
 		vim.api.nvim_win_close(windower.bufListWindowHandle, true)
+		windower.bufListWindowHandle = nil
 	end
 	if windower.hotswapWindowHandle and vim.api.nvim_win_is_valid(windower.hotswapWindowHandle) then
 		vim.api.nvim_win_close(windower.hotswapWindowHandle, true)
+		windower.hotswapWindowHandle = nil
 	end
 	if windower.searchBarWindowHandle and vim.api.nvim_win_is_valid(windower.searchBarWindowHandle) then
 		vim.api.nvim_win_close(windower.searchBarWindowHandle, true)
+		windower.searchBarWindowHandle = nil
 	end
 	if windower.searchResultsWindowHandle and vim.api.nvim_win_is_valid(windower.searchResultsWindowHandle) then
 		vim.api.nvim_win_close(windower.searchResultsWindowHandle, true)
+		windower.searchResultsWindowHandle = nil
+	end
+
+	if windower.bufListBuf and vim.api.nvim_buf_is_valid(windower.bufListBuf) then
+		vim.api.nvim_buf_delete(windower.bufListBuf, { force = true })
+		windower.bufListBuf = nil
+	end
+	if windower.hotswapBuf and vim.api.nvim_buf_is_valid(windower.hotswapBuf) then
+		vim.api.nvim_buf_delete(windower.hotswapBuf, { force = true })
+		windower.hotswapBuf = nil
+	end
+	if windower.bufListSearchResultBuf and vim.api.nvim_buf_is_valid(windower.bufListSearchResultBuf) then
+		vim.api.nvim_buf_delete(windower.bufListSearchResultBuf, { force = true })
+		windower.bufListSearchResultBuf = nil
+	end
+	if windower.bufListSearchBuf and vim.api.nvim_buf_is_valid(windower.bufListSearchBuf) then
+		vim.api.nvim_buf_delete(windower.bufListSearchBuf, { force = true })
+		windower.bufListSearchBuf = nil
 	end
 
 	-- Close the labels if they are open. This should get cleaned up at some point
 	for _, win in ipairs(windower.bufLabelHandles) do
 		vim.api.nvim_win_close(win, true)
 	end
-
-	windower.bufListWindowHandle = nil
-	windower.hotswapWindowHandle = nil
-	windower.searchBarWindowHandle = nil
-	windower.searchResultsWindowHandle = nil
 	windower.bufLabelHandles = {}
 end
 

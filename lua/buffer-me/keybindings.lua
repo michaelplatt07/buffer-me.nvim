@@ -1,4 +1,4 @@
-local keybindings = {
+local listingMaps = {
 	quit = {
 		mode = "n",
 		key = "q",
@@ -7,6 +7,8 @@ local keybindings = {
 		mode = "n",
 		key = "<Esc>",
 	},
+	up = { mode = "n", key = "k" },
+	down = { mode = "n", key = "j" },
 	open = { mode = "n", key = "o" },
 	openEnter = { mode = "n", key = "<CR>" },
 	delete = {
@@ -33,14 +35,14 @@ local keybindings = {
 	select_placement = { mode = "n", key = "sp" },
 }
 
-local searchKeybindings = {
+local searchMaps = {
 	move_up_normal = {
 		mode = "n",
-		key = "j",
+		key = "k",
 	},
 	move_down_normal = {
 		mode = "n",
-		key = "k",
+		key = "j",
 	},
 	move_up = {
 		mode = "i",
@@ -96,144 +98,152 @@ local searchKeybindings = {
 	},
 }
 
+local keybindings = {}
+
 function keybindings.update_key_binding(func, custombind)
 	keybindings[func].key = custombind
 end
 
-function keybindings.map_keys(buf, bindings)
-	vim.keymap.set(keybindings.open.mode, keybindings.open.key, function()
-		bindings.open()
+function keybindings.map_keys(buf, callbacks)
+	vim.keymap.set(listingMaps.up.mode, listingMaps.up.key, function()
+		callbacks.up()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.openEnter.mode, keybindings.openEnter.key, function()
-		bindings.open()
+	vim.keymap.set(listingMaps.down.mode, listingMaps.down.key, function()
+		callbacks.down()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.delete.mode, keybindings.delete.key, function()
-		bindings.del()
+	vim.keymap.set(listingMaps.open.mode, listingMaps.open.key, function()
+		callbacks.open()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.open_v_split.mode, keybindings.open_v_split.key, function()
-		bindings.v_split()
+	vim.keymap.set(listingMaps.openEnter.mode, listingMaps.openEnter.key, function()
+		callbacks.open()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.open_h_split.mode, keybindings.open_h_split.key, function()
-		bindings.h_split()
+	vim.keymap.set(listingMaps.delete.mode, listingMaps.delete.key, function()
+		callbacks.del()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.set_first_hotswap.mode, keybindings.set_first_hotswap.key, function()
-		bindings.set_first()
+	vim.keymap.set(listingMaps.open_v_split.mode, listingMaps.open_v_split.key, function()
+		callbacks.v_split()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.set_second_hotswap.mode, keybindings.set_second_hotswap.key, function()
-		bindings.set_second()
+	vim.keymap.set(listingMaps.open_h_split.mode, listingMaps.open_h_split.key, function()
+		callbacks.h_split()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.go_to.mode, keybindings.go_to.key, function()
-		bindings.go_to()
+	vim.keymap.set(listingMaps.set_first_hotswap.mode, listingMaps.set_first_hotswap.key, function()
+		callbacks.set_first()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.quit.mode, keybindings.quit.key, function()
-		bindings.close()
+	vim.keymap.set(listingMaps.set_second_hotswap.mode, listingMaps.set_second_hotswap.key, function()
+		callbacks.set_second()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.quit_esc.mode, keybindings.quit_esc.key, function()
-		bindings.close()
+	vim.keymap.set(listingMaps.go_to.mode, listingMaps.go_to.key, function()
+		callbacks.go_to()
 	end, { buffer = buf })
-	vim.keymap.set(keybindings.select_placement.mode, keybindings.select_placement.key, function()
-		bindings.select_window()
+	vim.keymap.set(listingMaps.quit.mode, listingMaps.quit.key, function()
+		callbacks.close()
 	end, { buffer = buf })
-end
-
-function keybindings.map_search_keys(buf, bindings)
-	vim.keymap.set(searchKeybindings.move_up_normal.mode, searchKeybindings.move_up_normal.key, function()
-		vim.schedule(function()
-			bindings.move_up()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.move_down_normal.mode, searchKeybindings.move_down_normal.key, function()
-		vim.schedule(function()
-			bindings.move_down()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.move_up.mode, searchKeybindings.move_up.key, function()
-		vim.schedule(function()
-			bindings.move_up()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.move_down.mode, searchKeybindings.move_down.key, function()
-		vim.schedule(function()
-			bindings.move_down()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.arrow_move_up.mode, searchKeybindings.arrow_move_up.key, function()
-		vim.schedule(function()
-			bindings.move_up()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.arrow_move_down.mode, searchKeybindings.arrow_move_down.key, function()
-		vim.schedule(function()
-			bindings.move_down()
-		end)
-	end, {
-		buffer = buf,
-		noremap = true,
-		silent = true,
-	})
-	vim.keymap.set(searchKeybindings.open_normal.mode, searchKeybindings.open_normal.key, function()
-		bindings.open()
+	vim.keymap.set(listingMaps.quit_esc.mode, listingMaps.quit_esc.key, function()
+		callbacks.close()
 	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.open.mode, searchKeybindings.open.key, function()
-		bindings.open()
-	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.open_v_split.mode, searchKeybindings.open_v_split.key, function()
-		vim.schedule(function()
-			bindings.v_split()
-		end)
-	end, { buffer = buf, noremap = true, silent = true })
-	vim.keymap.set(searchKeybindings.open_h_split.mode, searchKeybindings.open_h_split.key, function()
-		vim.schedule(function()
-			bindings.h_split()
-		end)
-	end, { buffer = buf, noremap = true, silent = true })
-	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
-		bindings.close()
-	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.close_esc.mode, searchKeybindings.close_esc.key, function()
-		bindings.close()
-	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.delete_i_mode.mode, searchKeybindings.delete_i_mode.key, function()
-		vim.schedule(function()
-			bindings.del()
-		end)
-	end, { buffer = buf, noremap = true, silent = true })
-	vim.keymap.set(searchKeybindings.delete_n_mode.mode, searchKeybindings.delete_n_mode.key, function()
-		bindings.del()
-	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.select_placement.mode, searchKeybindings.select_placement.key, function()
-		bindings.select_window()
+	vim.keymap.set(listingMaps.select_placement.mode, listingMaps.select_placement.key, function()
+		callbacks.select_window()
 	end, { buffer = buf })
 end
 
-function keybindings.map_search_res_keys(buf, bindings)
+function keybindings.map_search_keys(buf, callbacks)
+	vim.keymap.set(searchMaps.move_up_normal.mode, searchMaps.move_up_normal.key, function()
+		vim.schedule(function()
+			callbacks.up()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.move_down_normal.mode, searchMaps.move_down_normal.key, function()
+		vim.schedule(function()
+			callbacks.down()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.move_up.mode, searchMaps.move_up.key, function()
+		vim.schedule(function()
+			callbacks.up()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.move_down.mode, searchMaps.move_down.key, function()
+		vim.schedule(function()
+			callbacks.down()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.arrow_move_up.mode, searchMaps.arrow_move_up.key, function()
+		vim.schedule(function()
+			callbacks.up()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.arrow_move_down.mode, searchMaps.arrow_move_down.key, function()
+		vim.schedule(function()
+			callbacks.down()
+		end)
+	end, {
+		buffer = buf,
+		noremap = true,
+		silent = true,
+	})
+	vim.keymap.set(searchMaps.open_normal.mode, searchMaps.open_normal.key, function()
+		callbacks.open()
+	end, { buffer = buf })
+	vim.keymap.set(searchMaps.open.mode, searchMaps.open.key, function()
+		callbacks.open()
+	end, { buffer = buf })
+	vim.keymap.set(searchMaps.open_v_split.mode, searchMaps.open_v_split.key, function()
+		vim.schedule(function()
+			callbacks.v_split()
+		end)
+	end, { buffer = buf, noremap = true, silent = true })
+	vim.keymap.set(searchMaps.open_h_split.mode, searchMaps.open_h_split.key, function()
+		vim.schedule(function()
+			callbacks.h_split()
+		end)
+	end, { buffer = buf, noremap = true, silent = true })
+	vim.keymap.set(searchMaps.close.mode, searchMaps.close.key, function()
+		callbacks.close()
+	end, { buffer = buf })
+	vim.keymap.set(searchMaps.close_esc.mode, searchMaps.close_esc.key, function()
+		callbacks.close()
+	end, { buffer = buf })
+	vim.keymap.set(searchMaps.delete_i_mode.mode, searchMaps.delete_i_mode.key, function()
+		vim.schedule(function()
+			callbacks.del()
+		end)
+	end, { buffer = buf, noremap = true, silent = true })
+	vim.keymap.set(searchMaps.delete_n_mode.mode, searchMaps.delete_n_mode.key, function()
+		callbacks.del()
+	end, { buffer = buf })
+	vim.keymap.set(searchMaps.select_placement.mode, searchMaps.select_placement.key, function()
+		callbacks.select_window()
+	end, { buffer = buf })
+end
+
+function keybindings.map_search_res_keys(buf, callbacks)
 	-- This is a safety that lets the user close the search if they accidentally click into the search result window. It
 	-- will just close everything up the same as if they hit close in the search bar
-	vim.keymap.set(searchKeybindings.close.mode, searchKeybindings.close.key, function()
-		bindings.close()
+	vim.keymap.set(searchMaps.close.mode, searchMaps.close.key, function()
+		callbacks.close()
 	end, { buffer = buf })
-	vim.keymap.set(searchKeybindings.close_esc.mode, searchKeybindings.close_esc.key, function()
-		bindings.close()
+	vim.keymap.set(searchMaps.close_esc.mode, searchMaps.close_esc.key, function()
+		callbacks.close()
 	end, { buffer = buf })
 end
 

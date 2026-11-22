@@ -6,9 +6,8 @@ local state = {
 
 	-- State management
 	buff_search_results = {},
-	selected_search_result = nil,
 	bufList = {},
-	selectedRow = nil,
+	selectedRow = 1,
 	currSelectedBuffer = nil,
 	firstBufHotswap = nil,
 	secondBufHotswap = nil,
@@ -22,26 +21,7 @@ local function shiftAndInsertBuffer(buf_name)
 	end
 end
 
-function state.append_to_buf_list(buf)
-	local buf_name = vim.api.nvim_buf_get_name(buf)
-
-	-- Replace the fully qualified file name with just the relative path
-	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
-
-	-- Return early if the buffer already exists in the list
-	local existsInList, dup_loc = state.check_for_dup_buf(buf_name)
-	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
-		return
-	elseif existsInList == true and state.recentToTop == true then
-		-- Pop the item from the list and shift everything down
-		table.remove(state.bufList, dup_loc)
-		shiftAndInsertBuffer(buf_name)
-	else
-		shiftAndInsertBuffer(buf_name)
-	end
-end
-
-function state.check_for_dup_buf(buf_name)
+local function check_for_dup_buf(buf_name)
 	local is_dup = false
 	local dup_loc = nil
 	for idx, val in ipairs(state.bufList) do
@@ -51,6 +31,93 @@ function state.check_for_dup_buf(buf_name)
 		end
 	end
 	return is_dup, dup_loc
+end
+
+local function fuzzy_path_score(query, path)
+	query = query:lower()
+	path = path:lower()
+
+	local last = path:match("([^/]+)$") or path
+	local score = 0
+
+	-- Rule 1: exact substring in last segment
+	if last:find(query, 1, true) then
+		score = score + 1
+	end
+
+	-- Rule 2: fuzzy match in last segment
+	do
+		local pos = 0
+		local ok = true
+		for c in query:gmatch(".") do
+			local s, e = last:find(c, pos + 1, true)
+			if not s then
+				ok = false
+				break
+			end
+			pos = e
+		end
+		if ok then
+			score = score + 1
+		end
+	end
+
+	-- Rule 3: fuzzy match anywhere
+	do
+		local pos = 0
+		local ok = true
+		for c in query:gmatch(".") do
+			local s, e = path:find(c, pos + 1, true)
+			if not s then
+				ok = false
+				break
+			end
+			pos = e
+		end
+		if ok then
+			score = score + 1
+		end
+	end
+
+	return score
+end
+
+local function fuzzy_substr(query, items)
+	local results = {}
+	query = query:lower()
+	for _, item in ipairs(items) do
+		local score = fuzzy_path_score(query, item)
+		if score > 0 then
+			table.insert(results, { item = item, score = score })
+		end
+	end
+
+	if #results > 0 then
+		table.sort(results, function(a, b)
+			return a.score > b.score
+		end)
+	end
+
+	return results
+end
+
+function state.append_to_buf_list(buf)
+	local buf_name = vim.api.nvim_buf_get_name(buf)
+
+	-- Replace the fully qualified file name with just the relative path
+	buf_name = buf_name:gsub("^" .. vim.pesc(vim.loop.cwd()) .. "/", "")
+
+	-- Return early if the buffer already exists in the list
+	local existsInList, dup_loc = check_for_dup_buf(buf_name)
+	if existsInList == true and (state.recentToTop == false or state.recentToTop == nil) then
+		return
+	elseif existsInList == true and state.recentToTop == true then
+		-- Pop the item from the list and shift everything down
+		table.remove(state.bufList, dup_loc)
+		shiftAndInsertBuffer(buf_name)
+	else
+		shiftAndInsertBuffer(buf_name)
+	end
 end
 
 function state.remove_buf_by_num(num, bufList)
@@ -158,24 +225,31 @@ function state.set_second_hotswap_from_window()
 	state.secondBufHotswap = vim.fn.bufnr(state.bufList[state.selectedRow])
 end
 
-function state.update_selected_row()
-	state.selectedRow = vim.api.nvim_win_get_cursor(0)[1]
+function state.move_up(winHandle)
+	if state.selectedRow - 1 <= 0 then
+		return
+	else
+		state.selectedRow = state.selectedRow - 1
+	end
+	vim.api.nvim_win_set_cursor(winHandle, { state.selectedRow, 0 })
 end
 
-function state.move_up_selected_search_result()
-	if state.selected_search_result - 1 <= 0 then
-		state.selected_search_result = 1
+function state.move_down(winHandle, inSearch)
+	if inSearch then
+		if state.selectedRow + 1 > #state.buff_search_results then
+			return
+		else
+			state.selectedRow = state.selectedRow + 1
+		end
 	else
-		state.selected_search_result = state.selected_search_result - 1
+		if state.selectedRow + 1 > #state.bufList then
+			return
+		else
+			state.selectedRow = state.selectedRow + 1
+		end
 	end
-end
 
-function state.move_down_selected_search_result()
-	if state.selected_search_result + 1 >= #state.buff_search_results then
-		state.selected_search_result = #state.buff_search_results
-	else
-		state.selected_search_result = state.selected_search_result + 1
-	end
+	vim.api.nvim_win_set_cursor(winHandle, { state.selectedRow, 0 })
 end
 
 function state.remove_selected_buf_from_list(fieldName, selectedRow, resultsTable)
@@ -189,93 +263,26 @@ function state.remove_selected_buf_from_list(fieldName, selectedRow, resultsTabl
 	end
 end
 
-local function fuzzy_path_score(query, path)
-	query = query:lower()
-	path = path:lower()
-
-	local last = path:match("([^/]+)$") or path
-	local score = 0
-
-	-- Rule 1: exact substring in last segment
-	if last:find(query, 1, true) then
-		score = score + 1
-	end
-
-	-- Rule 2: fuzzy match in last segment
-	do
-		local pos = 0
-		local ok = true
-		for c in query:gmatch(".") do
-			local s, e = last:find(c, pos + 1, true)
-			if not s then
-				ok = false
-				break
-			end
-			pos = e
-		end
-		if ok then
-			score = score + 1
-		end
-	end
-
-	-- Rule 3: fuzzy match anywhere
-	do
-		local pos = 0
-		local ok = true
-		for c in query:gmatch(".") do
-			local s, e = path:find(c, pos + 1, true)
-			if not s then
-				ok = false
-				break
-			end
-			pos = e
-		end
-		if ok then
-			score = score + 1
-		end
-	end
-
-	return score
-end
-
-local function fuzzy_substr(query, items)
-	local results = {}
-	query = query:lower()
-	for _, item in ipairs(items) do
-		local score = fuzzy_path_score(query, item)
-		if score > 0 then
-			table.insert(results, { item = item, score = score })
-		end
-	end
-
-	if #results > 0 then
-		table.sort(results, function(a, b)
-			return a.score > b.score
-		end)
-	end
-
-	return results
-end
-
 function state.search_buffers(buf_search_term)
 	state.buff_search_results = fuzzy_substr(buf_search_term, state.bufList)
 end
 
 function state.clear_selected_row()
-	state.selectedRow = nil
+	state.selectedRow = 1
 end
 
 function state.clear_selected_search_result()
-	state.selected_search_result = nil
+	state.selected_search_result = 1
 end
 
 function state.clear_state()
 	-- There are certain fields we don't want to reset such as the bufList which tracks the buffers and hotswaps and
-	-- most recent buffers
+	-- most recent buffers. Everything else we can reset to its base state. This means setting the currently selected
+	-- buffer to 1 for everything so there is no nil error possibility.
 	state.buff_search_results = {}
-	state.selected_search_result = nil
-	state.selectedRow = nil
-	state.currSelectedBuffer = nil
+	state.selected_search_result = 1
+	state.selectedRow = 1
+	state.currSelectedBuffer = 1
 end
 
 return state

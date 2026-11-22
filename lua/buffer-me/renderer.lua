@@ -51,7 +51,7 @@ function renderer.render_buf_search_results(bufListSearchResultBuf, buff_search_
 	vim.api.nvim_buf_set_option(bufListSearchResultBuf, "modifiable", false)
 end
 
-function renderer.render_buf_list_lines(bufListBuf, bufList, maxRecentBufferTrack)
+function renderer.render_buf_list_lines(bufListBuf, bufList, selectedRow, maxRecentBufferTrack)
 	-- Enable modifications to draw the lines to the buffer
 	vim.api.nvim_buf_set_option(bufListBuf, "modifiable", true)
 
@@ -64,21 +64,19 @@ function renderer.render_buf_list_lines(bufListBuf, bufList, maxRecentBufferTrac
 	end
 	vim.api.nvim_buf_set_lines(bufListBuf, 0, #lines, false, lines)
 
+	renderer.highlight_current_mark(bufListBuf, selectedRow)
+
 	-- Disable modifications because it's rendered
 	vim.api.nvim_buf_set_option(bufListBuf, "modifiable", false)
 end
 
-local function clear_buf_search_results(bufListSearchResultBuf)
+function renderer.re_render_buf_search_results(bufListSearchResultBuf, buff_search_results, selectedRow)
 	vim.api.nvim_buf_set_option(bufListSearchResultBuf, "modifiable", true)
 	vim.api.nvim_buf_set_lines(bufListSearchResultBuf, 0, -1, false, {})
 	vim.api.nvim_buf_set_option(bufListSearchResultBuf, "modifiable", false)
-end
-
-function renderer.re_render_buf_search_results(bufListSearchResultBuf, buff_search_results, selected_search_result)
-	clear_buf_search_results(bufListSearchResultBuf)
 	renderer.render_buf_search_results(bufListSearchResultBuf, buff_search_results)
 	vim.api.nvim_buf_set_option(bufListSearchResultBuf, "modifiable", true)
-	renderer.highlight_current_mark(bufListSearchResultBuf, selected_search_result)
+	renderer.highlight_current_mark(bufListSearchResultBuf, selectedRow)
 	vim.api.nvim_buf_set_option(bufListSearchResultBuf, "modifiable", false)
 end
 
