@@ -7,9 +7,9 @@ local management = require("buffer-me.managment")
 local bufferme = {}
 
 local function getSelectedBufHandle(rowNumber)
-	if next(state.bufList) ~= nil then
+	if windower.bufListWindowHandle ~= nil then
 		return vim.fn.bufnr(state.bufList[rowNumber])
-	elseif next(state.buff_search_results) ~= nil then
+	elseif windower.searchResultsWindowHandle ~= nil then
 		return vim.fn.bufnr(state.buff_search_results[rowNumber]["item"])
 	else
 		error("There was problem opening a buffer")
